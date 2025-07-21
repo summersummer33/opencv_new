@@ -65,7 +65,7 @@ plate_order=[]
 # recv = b'AA'
 recv=''
 line_cishu =1
-get_order=[2,3,1]
+get_order=[2,1,3]
 put_order=[1,3,2]
 get_order_blank=[]
 
@@ -81,7 +81,7 @@ while True:
         #### 根据接收到的指令更新recv
         # if (recv_mess == b'AA' or recv_mess==b'BB' or recv_mess==b'CC' or recv_mess==b'DD' or recv_mess==b'EE' 
         #     or recv_mess==b'FF' or recv_mess==b'GG' or recv_mess==b'HH' or recv_mess==b'LL' or recv_mess==b'st'):
-        if recv_mess in [b'AA', b'BB', b'CC', b'DD', b'EE', b'FF', b'GG', b'HH', b'II', b'JJ', b'KK', b'LL', b'MM', b'NN', b'OO', b'PP', b'st', b'end']:
+        if recv_mess in [b'AA', b'BB', b'CC', b'DD', b'EE', b'FF', b'GG', b'HH\n', b'II', b'JJ', b'KK', b'LL', b'MM', b'NN', b'OO', b'PP', b'st', b'end']:
             recv=recv_mess
     # print("first  recv:",recv)
     # print(recv)
@@ -598,7 +598,7 @@ while True:
         recv=b'st'
 
 ####识别转盘 放置物料 转盘是色块（最开始版
-    elif recv==b'HH':
+    elif recv==b'HH\n':
         i=0
         while not cap.isOpened():
             print("Not open colorcap")
@@ -663,13 +663,13 @@ while True:
                     # stop_flag=plate_order[i]
                     # if color==plate_order[i]:
                         stop_flag=1
-                        if plate_order[i] == 1:
-                            testdef.sendMessage(ser,7)
-                        elif plate_order[i] == 2:
-                            testdef.sendMessage(ser,8)
-                        elif plate_order[i]== 3:
-                            testdef.sendMessage(ser,9)
-                    # testdef.sendMessage(ser,stop_flag)
+                        # if plate_order[i] == 1:
+                        #     testdef.sendMessage(ser,57)
+                        # elif plate_order[i] == 2:
+                        #     testdef.sendMessage(ser,64)
+                        # elif plate_order[i]== 3:
+                        #     testdef.sendMessage(ser,65)
+                        testdef.sendMessage(ser,119)  
             # Time = time.time()
             stop_flag=0
             stop_flag_1=0

@@ -112,12 +112,18 @@ class FunctionHandler:
                     stop_flag = plate_order[i]  #令标志位为颜色序号
                     print("stop_flag",stop_flag)
                     testdef.sendMessage2(self.ser,detx,dety)  #给机械臂发送大致调整参数，机械臂只动一下
-                    time.sleep(0.01)
+                    time.sleep(0.05)
                     if stop_flag == 1:  #发送到位信息，不同颜色发送不同值
+                        testdef.sendMessage(self.ser,7)
+                        time.sleep(0.1)
                         testdef.sendMessage(self.ser,7)
                     elif stop_flag == 2:
                         testdef.sendMessage(self.ser,8)
+                        time.sleep(0.1)
+                        testdef.sendMessage(self.ser,8)
                     elif stop_flag == 3:
+                        testdef.sendMessage(self.ser,9)
+                        time.sleep(0.1)
                         testdef.sendMessage(self.ser,9)
                     # testdef.sendMessage(ser,stop_flag)
             # Time = time.time()
@@ -155,6 +161,9 @@ class FunctionHandler:
     # 粗定位函数：直线和圆环一起调整
     def cu_positioning(self, limit_circle=4, limit_line=0.5, timeout_cu=5):
         """粗定位车身位置（直线和圆环一起调整）"""
+        # 在开始粗定位前，重置 together_line_circle1 的内部状态
+        testdef.reset_together_state()
+        
         ret=self.cap.grab()
         print("cccccccccccc")
         line_flag=0   #粗调时的直线圆环标志位置0
@@ -169,7 +178,9 @@ class FunctionHandler:
         # time_together=5   #粗调超时
         ####发送偏差值信息，调整车身位置直到超时或者直线圆环均到位
         while ((time.time()-Time1)<timeout_cu) and ((not line_flag) or (not move_flag)) :
-            theta,line_flag,detx,dety,move_flag=testdef.together_line_circle1(self.cap,limit_position_circle=limit_circle, 
+            # theta,line_flag,detx,dety,move_flag=testdef.together_line_circle1(self.cap,limit_position_circle=limit_circle, 
+            #                                                                   limit_position_line=limit_line)
+            theta,line_flag,detx,dety,move_flag=testdef.together_line_circle_det(self.cap,limit_position_circle=limit_circle, 
                                                                               limit_position_line=limit_line)
             if line_flag==0 or move_flag==0:
                 if line_flag ==1:   #直线到位则后续角度一直为0
@@ -187,9 +198,9 @@ class FunctionHandler:
         cv2.destroyAllWindows()
 
     # 细调函数：颜色定位和灰度定位
-    def xi_positioning(self, circle_order, timeout_xi=2):
+    def xi_positioning(self, circle_order, timeout_xi=2, run_time=3):
         """细调圆环位置（颜色定位和灰度定位）"""
-        for i in range(3):
+        for i in range(run_time):
             ret=self.cap.grab()
             testdef.g_prev_smoothed_circle=None
             print("iiiiiiiiiiiiii:",i,"color:",circle_order[i])
@@ -197,7 +208,9 @@ class FunctionHandler:
             recv_first=None
             while True:
                 recv_first=testdef.receiveMessage(self.ser)
-                if recv_first==b'near ground':
+                # if recv_first != None:
+                #     print("recv_first",recv_first)
+                if recv_first==b'nearground':
                     print("recv_first",recv_first)
                     break
             ####细调开始计时
@@ -218,16 +231,41 @@ class FunctionHandler:
                     print("cutiao time:",time.time()-timee)
             print("xitiao11 okokokokokokokokok")
             move_flag_color_1=0   
+
+            # move_flag_color_2 = 0
+            # stable_count = 0
+            # required_stable_frames = 3  # 需要连续稳定的帧数
+            # flag_mid = 0
+            # while (stable_count < required_stable_frames) and (time.time()-Time3)<timeout_xi:
+            #     timeee=time.time()
+            #     print("xxxxxxxx")
+            #     timeee = time.time()
+            #     detx, dety, flag_mid  = testdef.circlePut1(self.cap)
+                
+            #     if flag_mid:
+            #         stable_count += 1
+            #     else:
+            #         stable_count = 0  # 重置计数器
+            #         testdef.sendMessage2(self.ser, detx, dety)
+            #     if stable_count == required_stable_frames:
+            #         move_flag_color_2 = 1
+                
+            #     print("xitiao time:", time.time()-timeee)            
+
             #细调第二步 灰度定中心（第一版-无到位后二次检测
+            testdef.reset_circle_put_state()
             move_flag_color_2=0
             while (not move_flag_color_2 and (time.time()-Time3)<timeout_xi):
             # while (not move_flag_color_2 ):
                 print("xxxxxxxx")
                 timeee=time.time()
-                detx,dety,move_flag_color_2=testdef.circlePut1(self.cap)
+                # detx,dety,move_flag_color_2=testdef.circlePut1(self.cap)
+                # detx,dety,move_flag_color_2=testdef.circlePut_hzw(self.cap)
+                detx,dety,move_flag_color_2=testdef.circlePut_det(self.cap)
                 if move_flag_color_2==0:
                     testdef.sendMessage2(self.ser,detx,dety)
                     print("xitiao time:",time.time()-timeee)
+    
             # ###细调第二步 灰度定中心（第二版-到位后做二次检测-防止物料贴环边立即就放
             # move_flag_color_2_2=0
             # while (not move_flag_color_2_2 and (time.time()-Time3)<timeout_xi):
@@ -277,7 +315,7 @@ class FunctionHandler:
         ret=self.cap.grab()
         self.recv=b'st'  #完成功能后进入空循环
 
-    def adjust_line_gray_yellow(self,timeout_line=5):
+    def adjust_line_gray_yellow(self,timeout_line=3):
         """调整直线——灰黄交界"""
         while not self.cap.isOpened():
             print("Not open colorcap")
@@ -338,15 +376,11 @@ class FunctionHandler:
         ret=self.cap.grab()
         cv2.destroyAllWindows()
 
-    def plate_adjust_then_put(self,plate_order):
+
+    def plate_adjust_then_put(self, plate_order, adjust_finely=0):
         i=0
         while not self.cap.isOpened():
             print("Not open colorcap")
-        # if plate_time == 1:
-        #     plate_order=get_order
-        # elif plate_time == 2:
-        #     plate_order=put_order
-        # plate_order=get_order
         print("plate_order:",plate_order)
         stop_flag=0
         # i=0
@@ -354,45 +388,91 @@ class FunctionHandler:
         stop_first=0
         x_last=0
         y_last=0
-        while not stop_first:
-            flag2 = testdef.detectPlate_gray(self.cap)
-            x_,y_,img_,flag1,detx,dety,color = testdef.findBlockCenter_gray(self.cap)
-            if  (flag2 == 1 and flag1 == 1):
-                x_last=x_
-                y_last=y_
-                while not stop_first:
-                    x_,y_,img_,flag_,detx_,dety_,color_number= testdef.findBlockCenter_gray(self.cap)
-                    if abs(x_last-x_)<0.05 and abs(y_last-y_)<0.05:
-                        print("1")
-                        x_last=x_
-                        y_last=y_
-                    else:
-                        stop_first=1
-        print("kaishidongjixiebi kaishidongjixiebi")
-        while not stop_flag_1:
-            # print("i:",i)
-            # if stop_flag_1==0:
-            flag2 = testdef.detectPlate_gray(self.cap)
-            x_,y_,img_,flag1,detx,dety,color = testdef.findBlockCenter_gray(self.cap)
-            if  (flag2 == 1 and flag1 == 1):
-            # if flag2==1: 
-                time_start=time.time()
-                while (not stop_flag_1 and (time.time()-time_start)<3.2):
-                    x_,y_,img_,flag9,detx9,dety9,color = testdef.findBlockCenter_gray(self.cap)
-                    print("qqqqqqqq:",abs(detx9),abs(dety9))
-                    # if abs(detx9)<12 and abs(dety9)<12 and detx9!=0 and dety9!=0:
-                    if abs(detx9)<12 and abs(dety9)<12 and flag9==1:
-                        stop_flag_1=1
-                        print("stop_flag_1:",stop_flag_1)
-                    else:
-                        testdef.sendMessage2(self.ser,detx9,dety9)
-                        time.sleep(0.01)
-                if stop_flag_1==1:
-                    testdef.sendMessage(self.ser,57)
-                    time.sleep(3.5)#避免在该圆环下定位后立即判断该色到位，加一个延时，放掉这个圆环，对
+        detx_last = 0
+        dety_last = 0
+        # while not stop_first:
+        #     flag2, direction = testdef.detectPlate_gray(self.cap)
+        #     x_,y_,img_,flag1,detx,dety,color = testdef.findBlockCenter_gray(self.cap)
+        #     if  (flag2 == 1 and flag1 == 1):
+        #         x_last=x_
+        #         y_last=y_
+        #         while not stop_first:
+        #             x_,y_,img_,flag_,detx_,dety_,color_number= testdef.findBlockCenter_gray(self.cap)
+        #             if abs(x_last-x_)<0.05 and abs(y_last-y_)<0.05:
+        #                 print("1")
+        #                 x_last=x_
+        #                 y_last=y_
+        #                 detx_last = detx_
+        #                 dety_last = dety_
+        #             else:
+        #                 stop_first=1
+        # 1. 引入新变量来存储静止时的精确偏差
+        is_locked = False       # 标志位，表示我们是否已经锁定了静止的圆环
+        locked_detx = 0         # 存储静止时测得的精确 detx
+        locked_dety = 0         # 存储静止时测得的精确 dety
+        is_stopped = False
+        
+        # 2. 修改你的主循环，使其成为一个状态切换的逻辑
+        # 我们不再需要 stop_first 标志，is_locked 更清晰
+        while not is_locked:
+            # 持续检测转盘是否停止 和 圆环是否存在
+            is_stopped, direction = testdef.detectPlate_gray(self.cap)
+            x_, y_, img_, is_found, detx, dety, color = testdef.findBlockCenter_gray(self.cap)
+            if is_found and is_stopped:
+                print("检测到静止圆环！开始进行精确采样...")
+                # 进行多次采样以获得精确偏差
+                detx_samples = []
+                dety_samples = []
+                for _ in range(5):
+                    _, _, _, f, dx, dy, _ = testdef.findBlockCenter_gray(self.cap)
+                    if f:
+                        detx_samples.append(dx)
+                        dety_samples.append(dy)
+                    # time.sleep(0.05)
+                if detx_samples:
+                    locked_detx = round(np.mean(detx_samples))
+                    locked_dety = round(np.mean(dety_samples))
+                    is_locked = True # 成功锁定！退出这个循环
+                    print(f"成功锁定！静止偏差为: detx={locked_detx:.2f},d dety={locked_dety:.2f}")
                 else:
-                    print("chaoshilechaoshilechaoshilechaoshile")
-                    time.sleep(2)
+                    print("采样失败，将重试...")
+        # 3. 锁定成功后，进入下一个阶段：等待圆环离开
+        print("已锁定位置，现在等待圆环离开...")
+        has_departed = False
+        while not has_departed:
+            is_stopped, direction = testdef.detectPlate_gray(self.cap) # 持续检测停止状态
+            # x_, y_, img_, is_found, detx, dety, color = testdef.findBlockCenter_gray(self.cap)
+            if not is_stopped:
+                has_departed = True
+                print("检测到转盘开始移动，圆环已离开！")
+        print("kaishidongjixiebi kaishidongjixiebi")
+        if adjust_finely == 1:
+            while not stop_flag_1:
+                flag2, direction = testdef.detectPlate_gray(self.cap)
+                x_,y_,img_,flag1,detx,dety,color = testdef.findBlockCenter_gray(self.cap)
+                if  (flag2 == 1 and flag1 == 1):
+                # if flag2==1: 
+                    time_start=time.time()
+                    while (not stop_flag_1 and (time.time()-time_start)<3.2):
+                        x_,y_,img_,flag9,detx9,dety9,color = testdef.findBlockCenter_gray(self.cap)
+                        print("qqqqqqqq:",abs(detx9),abs(dety9))
+                        # if abs(detx9)<12 and abs(dety9)<12 and detx9!=0 and dety9!=0:
+                        if abs(detx9)<12 and abs(dety9)<12 and flag9==1:
+                            stop_flag_1=1
+                            print("stop_flag_1:",stop_flag_1)
+                        else:
+                            testdef.sendMessage2(self.ser,detx9,dety9)
+                            time.sleep(0.01)
+                    if stop_flag_1==1:
+                        testdef.sendMessage(self.ser,57)
+                        time.sleep(3.5)#避免在该圆环下定位后立即判断该色到位，加一个延时，放掉这个圆环，对
+                    else:
+                        print("chaoshilechaoshilechaoshilechaoshile")
+                        time.sleep(2)
+        else:
+            testdef.sendMessage2(self.ser,locked_detx,locked_dety)
+            time.sleep(2)
+        # testdef.sendMessage(self.ser,57)
         while i<3:
             while not stop_flag:
                 print("i:",i)
@@ -420,15 +500,10 @@ class FunctionHandler:
         cv2.destroyAllWindows()
 
 
-    def plate_adjust_then_put_pre_color(self,plate_order):
+    def plate_adjust_then_put_pre_color(self, plate_order, adjust_finely=0):
         i=0
         while not self.cap.isOpened():
             print("Not open colorcap")
-        # if plate_time == 1:
-        #     plate_order=get_order
-        # elif plate_time == 2:
-        #     plate_order=put_order
-        # plate_order=get_order
         print("plate_order:",plate_order)
         stop_flag=0
         # i=0
@@ -436,45 +511,87 @@ class FunctionHandler:
         stop_first=0
         x_last=0
         y_last=0
-        while not stop_first:
-            flag2 = testdef.detectPlate_gray(self.cap)
-            x_,y_,img_,flag1,detx,dety,color = testdef.findBlockCenter_gray(self.cap)
-            if  (flag2 == 1 and flag1 == 1):
-                x_last=x_
-                y_last=y_
-                while not stop_first:
-                    x_,y_,img_,flag_,detx_,dety_,color_number= testdef.findBlockCenter_gray(self.cap)
-                    if abs(x_last-x_)<0.05 and abs(y_last-y_)<0.05:
-                        print("1")
-                        x_last=x_
-                        y_last=y_
-                    else:
-                        stop_first=1
-        print("kaishidongjixiebi kaishidongjixiebi")
-        while not stop_flag_1:
-            # print("i:",i)
-            # if stop_flag_1==0:
-            flag2 = testdef.detectPlate_gray(self.cap)
-            x_,y_,img_,flag1,detx,dety,color = testdef.findBlockCenter_gray(self.cap)
-            if  (flag2 == 1 and flag1 == 1):
-            # if flag2==1: 
-                time_start=time.time()
-                while (not stop_flag_1 and (time.time()-time_start)<3):
-                    x_,y_,img_,flag9,detx9,dety9,color = testdef.findBlockCenter_gray(self.cap)
-                    print("qqqqqqqq:",abs(detx9),abs(dety9))
-                    # if abs(detx9)<12 and abs(dety9)<12 and detx9!=0 and dety9!=0:
-                    if abs(detx9)<4 and abs(dety9)<4 and flag9==1:
-                        stop_flag_1=1
-                        print("stop_flag_1:",stop_flag_1)
-                    else:
-                        testdef.sendMessage2(self.ser,detx9,dety9)
-                        time.sleep(0.01)
-                if stop_flag_1==1:
-                    testdef.sendMessage(self.ser,57)
-                    time.sleep(4)
+        # while not stop_first:
+        #     flag2, direction = testdef.detectPlate_gray(self.cap)
+        #     x_,y_,img_,flag1,detx,dety,color = testdef.findBlockCenter_gray(self.cap)
+        #     if  (flag2 == 1 and flag1 == 1):
+        #         x_last=x_
+        #         y_last=y_
+        #         while not stop_first:
+        #             x_,y_,img_,flag_,detx_,dety_,color_number= testdef.findBlockCenter_gray(self.cap)
+        #             if abs(x_last-x_)<0.05 and abs(y_last-y_)<0.05:
+        #                 print("1")
+        #                 x_last=x_
+        #                 y_last=y_
+        #             else:
+        #                 stop_first=1
+        # print("kaishidongjixiebi kaishidongjixiebi")
+        # 1. 引入新变量来存储静止时的精确偏差
+        is_locked = False       # 标志位，表示我们是否已经锁定了静止的圆环
+        locked_detx = 0         # 存储静止时测得的精确 detx
+        locked_dety = 0         # 存储静止时测得的精确 dety
+        is_stopped = False
+        
+        # 2. 修改你的主循环，使其成为一个状态切换的逻辑
+        # 我们不再需要 stop_first 标志，is_locked 更清晰
+        while not is_locked:
+            # 持续检测转盘是否停止 和 圆环是否存在
+            is_stopped, direction = testdef.detectPlate_gray(self.cap)
+            x_, y_, img_, is_found, detx, dety, color = testdef.findBlockCenter_gray(self.cap)
+            if is_found and is_stopped:
+                print("检测到静止圆环！开始进行精确采样...")
+                # 进行多次采样以获得精确偏差
+                detx_samples = []
+                dety_samples = []
+                for _ in range(5):
+                    _, _, _, f, dx, dy, _ = testdef.findBlockCenter_gray(self.cap)
+                    if f:
+                        detx_samples.append(dx)
+                        dety_samples.append(dy)
+                    # time.sleep(0.05)
+                if detx_samples:
+                    locked_detx = round(np.mean(detx_samples))
+                    locked_dety = round(np.mean(dety_samples))
+                    is_locked = True # 成功锁定！退出这个循环
+                    print(f"成功锁定！静止偏差为: detx={locked_detx:.2f},d dety={locked_dety:.2f}")
                 else:
-                    print("chaoshilechaoshilechaoshilechaoshile")
-                    time.sleep(2)
+                    print("采样失败，将重试...")
+        # 3. 锁定成功后，进入下一个阶段：等待圆环离开
+        print("已锁定位置，现在等待圆环离开...")
+        has_departed = False
+        while not has_departed:
+            is_stopped, direction = testdef.detectPlate_gray(self.cap) # 持续检测停止状态
+            # x_, y_, img_, is_found, detx, dety, color = testdef.findBlockCenter_gray(self.cap)
+            if not is_stopped:
+                has_departed = True
+                print("检测到转盘开始移动，圆环已离开！")
+        print("kaishidongjixiebi kaishidongjixiebi")
+        if adjust_finely == 1:
+            while not stop_flag_1:
+                flag2, direction = testdef.detectPlate_gray(self.cap)
+                x_,y_,img_,flag1,detx,dety,color = testdef.findBlockCenter_gray(self.cap)
+                if  (flag2 == 1 and flag1 == 1):
+                # if flag2==1: 
+                    time_start=time.time()
+                    while (not stop_flag_1 and (time.time()-time_start)<3.2):
+                        x_,y_,img_,flag9,detx9,dety9,color = testdef.findBlockCenter_gray(self.cap)
+                        print("qqqqqqqq:",abs(detx9),abs(dety9))
+                        # if abs(detx9)<12 and abs(dety9)<12 and detx9!=0 and dety9!=0:
+                        if abs(detx9)<12 and abs(dety9)<12 and flag9==1:
+                            stop_flag_1=1
+                            print("stop_flag_1:",stop_flag_1)
+                        else:
+                            testdef.sendMessage2(self.ser,detx9,dety9)
+                            time.sleep(0.01)
+                    if stop_flag_1==1:
+                        testdef.sendMessage(self.ser,57)
+                        time.sleep(3.5)#避免在该圆环下定位后立即判断该色到位，加一个延时，放掉这个圆环，对
+                    else:
+                        print("chaoshilechaoshilechaoshilechaoshile")
+                        time.sleep(2)
+        else:
+            testdef.sendMessage2(self.ser,locked_detx,locked_dety)
+            time.sleep(2)
         i=0
         while i<3:
             # while not stop_flag:
@@ -493,18 +610,18 @@ class FunctionHandler:
             #             elif plate_order[i]== 3:
             #                 testdef.sendMessage(ser,9)
             color_=0
-            # if (plate_order[i]==1):
-            #     color_=2
-            # elif(plate_order[i]==2):
-            #     color_=3
-            # elif(plate_order[i]==3):
-            #     color_=1
             if (plate_order[i]==1):
-                color_=3
-            elif(plate_order[i]==2):
-                color_=1
-            elif(plate_order[i]==3):
                 color_=2
+            elif(plate_order[i]==2):
+                color_=3
+            elif(plate_order[i]==3):
+                color_=1
+            # if (plate_order[i]==1):
+            #     color_=3
+            # elif(plate_order[i]==2):
+            #     color_=1
+            # elif(plate_order[i]==3):
+            #     color_=2
             while not stop_flag:
                 flag2 = testdef.detectPlate(self.cap,color_)
                 x_,y_,img_,flag1,detx,dety = testdef.findBlockCenter(self.cap,color_)
@@ -525,12 +642,383 @@ class FunctionHandler:
             time.sleep(4)
             i=i+1
         cv2.destroyAllWindows()
-        recv=b'st'
-        
 
 
+    def plate_adjust_then_put_pre_color_pro(self, plate_order, adjust_finely=0):
+        while not self.cap.isOpened():
+            print("Not open colorcap")
+        print("plate_order:",plate_order)
+        stop_flag=0
+        stop_flag_1=0
+        x_last=0
+        y_last=0
+        # 1. 引入新变量来存储静止时的精确偏差
+        is_locked = False       # 标志位，表示我们是否已经锁定了静止的圆环
+        locked_detx = 0         # 存储静止时测得的精确 detx
+        locked_dety = 0         # 存储静止时测得的精确 dety
+        is_stopped = False
+        flag_color = 0
+        i=0
+        for i in range(3):
+        # while i<3:
+            color_=0
+            if (plate_order[i]==1):
+                color_=2
+            elif(plate_order[i]==2):
+                color_=3
+            elif(plate_order[i]==3):
+                color_=1
+            # if (plate_order[i]==1):
+            #     color_=3
+            # elif(plate_order[i]==2):
+            #     color_=1
+            # elif(plate_order[i]==3):
+            #     color_=2
+
+            if i == 0:
+                while not is_locked:
+                    # 持续检测转盘是否停止 和 圆环是否存在
+                    is_stopped, direction = testdef.detectPlate_gray(self.cap)
+                    x_, y_, img_, is_found, detx, dety, color = testdef.findBlockCenter_gray(self.cap)
+                    x_,y_,img_,flag_color,detx,dety = testdef.findBlockCenter(self.cap,color_)
+                    if is_found and is_stopped:
+                        print("检测到静止圆环！开始进行精确采样...")
+                        # 进行多次采样以获得精确偏差
+                        detx_samples = []
+                        dety_samples = []
+                        for _ in range(5):
+                            _, _, _, f, dx, dy, _ = testdef.findBlockCenter_gray(self.cap)
+                            if f:
+                                detx_samples.append(dx)
+                                dety_samples.append(dy)
+                            # time.sleep(0.05)
+                        if detx_samples:
+                            locked_detx = round(np.mean(detx_samples))
+                            locked_dety = round(np.mean(dety_samples))
+                            is_locked = True # 成功锁定！退出这个循环
+                            print(f"成功锁定！静止偏差为: detx={locked_detx:.2f},d dety={locked_dety:.2f}")
+                        else:
+                            print("采样失败，将重试...")
+                # 3. 锁定成功后，进入下一个阶段：等待圆环离开
+                print("已锁定位置，现在等待圆环离开...")
+                has_departed = False
+                while not has_departed:
+                    is_stopped, direction = testdef.detectPlate_gray(self.cap) # 持续检测停止状态
+                    # x_, y_, img_, is_found, detx, dety, color = testdef.findBlockCenter_gray(self.cap)
+                    if not is_stopped:
+                        has_departed = True
+                        print("检测到转盘开始移动，圆环已离开！")
+                print("kaishidongjixiebi kaishidongjixiebi")
+                if adjust_finely == 1:
+                    while not stop_flag_1:
+                        flag2, direction = testdef.detectPlate_gray(self.cap)
+                        x_,y_,img_,flag1,detx,dety,color = testdef.findBlockCenter_gray(self.cap)
+                        if  (flag2 == 1 and flag1 == 1):
+                        # if flag2==1: 
+                            time_start=time.time()
+                            while (not stop_flag_1 and (time.time()-time_start)<3.2):
+                                x_,y_,img_,flag9,detx9,dety9,color = testdef.findBlockCenter_gray(self.cap)
+                                print("qqqqqqqq:",abs(detx9),abs(dety9))
+                                # if abs(detx9)<12 and abs(dety9)<12 and detx9!=0 and dety9!=0:
+                                if abs(detx9)<12 and abs(dety9)<12 and flag9==1:
+                                    stop_flag_1=1
+                                    print("stop_flag_1:",stop_flag_1)
+                                else:
+                                    testdef.sendMessage2(self.ser,detx9,dety9)
+                                    time.sleep(0.01)
+                            if stop_flag_1==1:
+                                testdef.sendMessage(self.ser,57)
+                                time.sleep(3.5)#避免在该圆环下定位后立即判断该色到位，加一个延时，放掉这个圆环，对
+                            else:
+                                print("chaoshilechaoshilechaoshilechaoshile")
+                                time.sleep(2)
+                else:
+                    testdef.sendMessage2(self.ser,locked_detx,locked_dety)
+                    time.sleep(0.05)
+                    if flag_color:
+                        testdef.sendMessage(self.ser,119)
+                        stop_flag=0
+                        stop_flag_1=0
+                        time.sleep(4)
+                        continue
+
+
+
+
+
+            while not stop_flag:
+                flag2 = testdef.detectPlate(self.cap,color_)
+                x_,y_,img_,flag1,detx,dety = testdef.findBlockCenter(self.cap,color_)
+                if  (flag2 == 1 and flag1 == 1):
+                    x_last=x_
+                    y_last=y_
+                    while not stop_flag:
+                        # x_,y_,img_,flag_,detx_,dety_,color_number= testdef.findBlockCenter_gray(self.cap)
+                        # if abs(x_last-x_)<0.05 and abs(y_last-y_)<0.05:
+                        #     print("1")
+                        #     x_last=x_
+                        #     y_last=y_
+                        # else:
+                        #     stop_flag=1
+                        # stop_flag_pre, direction = testdef.detectPlate_gray(self.cap) # 持续检测停止状态
+                        stop_flag_pre = testdef.detectPlate(self.cap,color_)
+                        if not stop_flag_pre:
+                            stop_flag = 1
+                        elif stop_flag_pre:
+                            print("1")
+            testdef.sendMessage(self.ser,119)
+            stop_flag=0
+            stop_flag_1=0
+            time.sleep(4)  #我看到上个颜色圆环离开-通知机械臂回身取物料-此延时用于防止在这个过程中看到颜色动与不动造成误判断
+        cv2.destroyAllWindows()
+
+
+    def get_from_plate_check_eachtime(self, plate_order, run_time=3):
+        """夹完在物料盘处二次检查 次次检查"""
+        if not self.check_camera(self.cap,"上部摄像头"):
+            self.init_camera_up()
+        stop_flag=0   #初始化转盘是否停止标志位
+        i = 0   #运行轮数
+        while i < run_time:
+        ####依据颜色顺序循环处理3个物料
+            # print("iii:",i)
+            # flagno = testdef.detectPlate(cap, 1)
+            ret=self.cap.grab()
+            while not stop_flag:
+                print("i:",i)
+                flag2 = testdef.detectPlate(self.cap,plate_order[i])
+                x_,y_,img_,flag1,detx,dety = testdef.findBlockCenter(self.cap,plate_order[i])
+                ####当所看对应颜色物料静止时
+                if  (flag2 == 1 and flag1 == 1):
+                    stop_flag = plate_order[i]  #令标志位为颜色序号
+                    print("stop_flag",stop_flag)
+                    testdef.sendMessage2(self.ser,detx,dety)  #给机械臂发送大致调整参数，机械臂只动一下
+                    time.sleep(0.01)
+                    if stop_flag == 1:  #发送到位信息，不同颜色发送不同值
+                        testdef.sendMessage(self.ser,7)
+                    elif stop_flag == 2:
+                        testdef.sendMessage(self.ser,8)
+                    elif stop_flag == 3:
+                        testdef.sendMessage(self.ser,9)
+                    # testdef.sendMessage(ser,stop_flag)
+            Time = time.time()
+            stop_flag=0    #重置停止标志位，给下一轮使用
+            flag_check=0    #初始化、重置检查物料是否夹到标志位
+            time_plate_check=6.2
+            #每次转到物料盘后检查
+            while (not flag_check) and ((time.time()-Time)<time_plate_check):
+                recv_check=testdef.receiveMessage(self.ser)
+                print("recv_check",recv_check)
+                if recv_check==b'check':
+                    print("start checkkkkkkkkkkkkkkkkkkk")
+                    flag_check=testdef.detectPlate_check(self.cap,plate_order[i])
+                    print("flag_chexk:",flag_check)
+                    if flag_check :  #如果夹到了继续下一个颜色
+                        print("next colorrrrrrrrrrrrrrrrrrrr")
+                        i=i+1
+                    else:  #没夹到仍等待第一个
+                        testdef.sendMessage(self.ser,3)
+                        # flag_check=1
+                    break
+            # if not flag_check:
+            #     i+=1
+            ret=self.cap.grab()
+            ret=self.cap.grab()
+        cv2.destroyAllWindows()
+
+
+    def get_from_ground_in_line(self):
+        '''在一条直线三个圆环处夹取物料 用于判定位置和颜色对应关系'''
+        while not self.cap.isOpened():
+            print("Not open colorcap")
+        ret=self.cap.grab()
+        get_order_blank=[]
+        #开始计时
+        Time_l=time.time()
+        time_l=2
+        line_flag = 0
+        #调整车身姿态直到直线到位或超时
+        while (not line_flag and (time.time()-Time_l)<time_l):
+        # while (not line_flag ):
+            theta,line_flag=testdef.detectLine(self.cap)
+            if line_flag ==0:
+                testdef.sendMessage5(self.ser,theta,0,0)
+                print("main li de theta:",theta)
+        print("line_flag:",line_flag)
+        testdef.sendMessage(self.ser,39)
+        time.sleep(0.01)
+        testdef.sendMessage(self.ser,40)
+        time.sleep(0.01)
+        testdef.sendMessage(self.ser,68)
+
+        line_flag=0        
+        while True:
+            recv_first=testdef.receiveMessage(self.ser)
+            print("recv_first",recv_first)
+            if recv_first==b'nearground':
+                break
+        color_2=0
+        flag1=0
+        Time_xy=time.time()
+        time_xy=3
+        while (not flag1 and (time.time()-Time_xy)<time_xy):
+            x_,y_,img_,flag1,detx,dety,color_2= testdef.findBlockCenter_acquaint_color(self.cap)
+            if  (flag1 == 0):
+                testdef.sendMessage5(self.ser,0,detx,dety)
+        testdef.sendMessage(self.ser,68)
+        ret = self.cap.grab()
+        flag1=0
+        while True:
+            recv_first=testdef.receiveMessage(self.ser)
+            print("recv_first",recv_first)
+            if recv_first==b'nearground':
+                break
+
+        color_1=0
+        for i in range(2):
+            x_,y_,img_,flag2,detx,dety,color= testdef.findBlockCenter_acquaint_color(self.cap)
+        ret = self.cap.grab()
+        x_,y_,img_,flag2,detx,dety,color_1= testdef.findBlockCenter_acquaint_color(self.cap)
+        get_order_blank.append(color_1)
+
+        get_order_blank.append(color_2)
+        color_3=6-color_1-color_2
+        get_order_blank.append(color_3)
+
+        testdef.sendMessage6(self.ser,get_order_blank)
+
+        get_order_blank=[]
     
 
+    def xi_positioning_update(self, circle_order, timeout_xi=2, run_time=3):
+        """
+        细调圆环位置（颜色定位和灰度定位）
+        # 更新偏差值
+        """
+        for i in range(run_time):
+            ret=self.cap.grab()
+            testdef.g_prev_smoothed_circle=None
+            print("iiiiiiiiiiiiii:",i,"color:",circle_order[i])
+            ####接收到爪子下降消息再开始进入细调
+            recv_first=None
+            recv_update=None
+            while True:
+                recv_update=testdef.receiveMessage(self.ser)
+                print("recv_update",recv_update)
+                if recv_update==b'update':#??????????????????
+                    # time_update=time.time()
+                    testdef.updateCorrectxy(self.cap,circle_order[i])
+                    # print("update center time:",time.time()-time_update)
+                    break
+            while True:
+                recv_first=testdef.receiveMessage(self.ser)
+                # if recv_first != None:
+                #     print("recv_first",recv_first)
+                if recv_first==b'nearground':
+                    print("recv_first",recv_first)
+                    break
+            ####细调开始计时
+            # for j in range(3):
+            #     q=cap.grab()
+            Time3=time.time()
+            ####细调第一步 颜色定五环
+            move_flag_color_1=0 
+            while (not move_flag_color_1 and (time.time()-Time3)<timeout_xi):
+            # while (not move_flag_color_1):
+            # while((time.time()-Time3)<timeout_xi):
+                timee=time.time()
+                print("cccccccccccc")
+                # q=cap.grab()
+                x_,y_,img_,move_flag_color_1,detx_p,dety_p = testdef.circlePut_color(self.cap,circle_order[i])
+                if move_flag_color_1==0:    #flag=1后那次数据不需发送
+                    testdef.sendMessage2(self.ser,detx_p,dety_p)
+                    print("cutiao time:",time.time()-timee)
+            print("xitiao11 okokokokokokokokok")
+            move_flag_color_1=0   
+
+            # move_flag_color_2 = 0
+            # stable_count = 0
+            # required_stable_frames = 3  # 需要连续稳定的帧数
+            # flag_mid = 0
+            # while (stable_count < required_stable_frames) and (time.time()-Time3)<timeout_xi:
+            #     timeee=time.time()
+            #     print("xxxxxxxx")
+            #     timeee = time.time()
+            #     detx, dety, flag_mid  = testdef.circlePut1(self.cap)
+                
+            #     if flag_mid:
+            #         stable_count += 1
+            #     else:
+            #         stable_count = 0  # 重置计数器
+            #         testdef.sendMessage2(self.ser, detx, dety)
+            #     if stable_count == required_stable_frames:
+            #         move_flag_color_2 = 1
+                
+            #     print("xitiao time:", time.time()-timeee)            
+
+            #细调第二步 灰度定中心（第一版-无到位后二次检测
+            testdef.reset_circle_put_state()
+            move_flag_color_2=0
+            while (not move_flag_color_2 and (time.time()-Time3)<timeout_xi):
+            # while (not move_flag_color_2 ):
+                print("xxxxxxxx")
+                timeee=time.time()
+                # detx,dety,move_flag_color_2=testdef.circlePut1(self.cap)
+                # detx,dety,move_flag_color_2=testdef.circlePut_hzw(self.cap)
+                detx,dety,move_flag_color_2=testdef.circlePut_det(self.cap)
+                if move_flag_color_2==0:
+                    testdef.sendMessage2(self.ser,detx,dety)
+                    print("xitiao time:",time.time()-timeee)
+    
+            # ###细调第二步 灰度定中心（第二版-到位后做二次检测-防止物料贴环边立即就放
+            # move_flag_color_2_2=0
+            # while (not move_flag_color_2_2 and (time.time()-Time3)<timeout_xi):
+            # # while (not move_flag_color_2_2 ):
+            #     print("xxxxxxxx")
+            #     timeee=time.time()
+            #     detx,dety,move_flag_color_2=testdef.circlePut1(self.cap)
+            #     # timeuart=time.time()
+            #     # print("xitiao time:",time.time()-timeee)
+            #     # testdef.sendMessage2(ser,detx,dety)
+            #     # print("xitiao time:",time.time()-timeuart)
+            #     if move_flag_color_2==0:
+            #         # a=1
+            #         testdef.sendMessage2(self.ser,detx,dety)
+            #         print("xitiao time:",time.time()-timeee)
+            #     else:
+            #         # detxx=0
+            #         # detyy=0
+            #         flagg=0
+            #         time_check=2
+            #         ####初次到位后再看一次是否还在中心内 若在则到位 若不在则继续调整
+            #         for k in range(time_check):
+            #             detx2,dety2,move_flag_color_22=testdef.circlePut1(self.cap)
+            #             testdef.sendMessage2(self.ser,detx2,dety2)
+            #             # print("double check")
+            #             # detxx+=detx
+            #             # detyy+=dety
+            #             flagg+=move_flag_color_22
+            #             print("double check    flagg:",flagg)
+            #         if flagg==time_check:
+            #             move_flag_color_2_2=1
+            #             break
+            #         move_flag_color_2_2=1
+            #         break
+            print("xitiao22 okokokokokokokokok  move_flag_color_2:",move_flag_color_2)
+            ####发送到位信息 根据颜色发送不同到位信息
+            if circle_order[i] == 1:
+                testdef.sendMessage(self.ser,57)
+            elif circle_order[i] == 2:
+                testdef.sendMessage(self.ser,64)
+            elif circle_order[i] == 3:
+                testdef.sendMessage(self.ser,65)
+            time.sleep(0.01)
+            move_flag_color_2=0
+            # i = i+1  #继续下一个颜色
+            # cv2.destroyAllWindows()
+        ret=self.cap.grab()
+        testdef.defaltCorrectxy()
+        self.recv=b'st'  #完成功能后进入空循环
 
 
     def reset_state(self):
