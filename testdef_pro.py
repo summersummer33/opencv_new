@@ -52,7 +52,7 @@ correct_y=14
 #45  7
 #细调时高度的偏差值(houghcircles)
 correct_x_hough=40
-correct_y_hough=14
+correct_y_hough=16
 #存储默认值
 correct_x_hough_default=correct_x_hough
 correct_y_hough_default=correct_y_hough
@@ -1365,9 +1365,13 @@ def findBlockCenter(color_cap, color_number, is_check=0): #转盘处识别色块
         # 将目标矩形区域设为 1（或 255，根据图像类型）
         mask[y1:y2, x1:x2] = 1  # 单通道：1；三通道： (1, 1, 1)
         closed = closed * mask  # 利用广播机制
-    cv2.imshow("closed",closed)
     # 分析轮廓（选择最上方的色块）
     h, w = frame.shape[:2]
+    if color_number == 2:
+        closed[:, :160] = 0
+        closed[:, 1120:1280] = 0
+
+    cv2.imshow("closed",closed)
     contours, _ = cv2.findContours(closed, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     
     x_center, y_center = 0, 0
@@ -1395,7 +1399,7 @@ def findBlockCenter(color_cap, color_number, is_check=0): #转盘处识别色块
         dety_p = int(h/2 - correct_y_hough - y_center)
 
     # 显示结果
-    print("detx_p:",detx_p,"dety_p:",dety_p,"flag:",flag)
+    # print("detx_p:",detx_p,"dety_p:",dety_p,"flag:",flag)
     cv2.imshow("src1", frame)
     cv2.waitKey(1)
     return x_center/w, y_center/h, frame, flag, detx_p, dety_p
@@ -1447,7 +1451,7 @@ def findBlockCenter_gray(color_cap): #在转盘上放物料（灰度处理）
             if len(approx) > 5:
                 largest_circle = approx
     
-    if largest_area > 10000 and largest_circle is not None:
+    if largest_area > 1000 and largest_circle is not None:
         (x, y), radius = cv2.minEnclosingCircle(largest_circle)
         center = (int(x), int(y))
         radius = int(radius)
@@ -2375,6 +2379,9 @@ def find_inner_circle_on_cylinder(cap, color_number, hough=1):
     contours, _ = cv2.findContours(combined_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
     output_frame = frame.copy()
+    detx = 0
+    dety = 0
+    flag = 0
 
     for cnt in contours:
         if cv2.contourArea(cnt) < 5000:
@@ -2407,6 +2414,7 @@ def find_inner_circle_on_cylinder(cap, color_number, hough=1):
         # - param2: 累加器阈值。这个值越小，能检测到的圆越多（包括假的）。
         # - minRadius, maxRadius: 圆半径的最小和最大值。这是非常有用的过滤器！
         
+        #使用霍夫圆办法
         if hough == 1:
             circles = cv2.HoughCircles(
                 blurred_roi,
@@ -2425,8 +2433,12 @@ def find_inner_circle_on_cylinder(cap, color_number, hough=1):
                     center_x = i[0] + x
                     center_y = i[1] + y
                     radius = i[2]
+                    detx = int(round(center_x - w/2 - correct_x_hough))
+                    dety = int(round(h/2 - center_x - correct_y_hough))
                     cv2.circle(output_frame, (center_x, center_y), 3, (0, 255, 0), -1)
                     cv2.circle(output_frame, (center_x, center_y), radius, (0, 0, 255), 3)
+                flag = 1
+        #多边形逼近
         else:
             edges_roi = cv2.Canny(blurred_roi, 40, 120)
             kernel = np.ones((7, 7), np.uint8)
@@ -2451,8 +2463,114 @@ def find_inner_circle_on_cylinder(cap, color_number, hough=1):
                     # 转换坐标并绘制
                     inner_cnt[:, :, 0] += x
                     inner_cnt[:, :, 1] += y
+                    detx = int(round(inner_cnt[:, :, 0] - w/2 - correct_x_hough))
+                    dety = int(h/2 - round(inner_cnt[:, :, 1] - correct_y_hough))
                     cv2.drawContours(output_frame, [inner_cnt], -1, (255, 0, 255), 2)
+                    flag = 1
     cv2.imshow("frame",output_frame)
     cv2.waitKey(1)
+    return flag, detx, dety
 
-    # return output_frame
+
+def enhance_and_find_ring(cap):
+    """
+    从摄像头捕获图像，识别白纸上的黑色细环，并直接显示处理过程和结果。
+    
+    该函数直接操作传入的摄像头对象，并在内部处理图像显示，无返回值。
+    
+    :param cap: cv2.VideoCapture 对象，即打开的摄像头。
+    """
+    # 1. 从摄像头捕获一帧图像
+    ret, frame = cap.read()
+    if not ret:
+        print("错误：无法从摄像头读取帧。")
+        return # 直接退出当前函数调用
+
+    # 创建一个副本用于绘制，以保留原始图像的清洁
+    output_frame = frame.copy()
+
+    # --- 图像处理流程 ---
+
+    # 2. 灰度化
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    # 3. CLAHE (自适应直方图均衡化) 增强对比度
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    enhanced = clahe.apply(gray)
+
+    # 4. 高斯模糊，平滑图像，减少噪声
+    blurred = cv2.GaussianBlur(enhanced, (5, 5), 0)
+
+    # 5. 黑帽操作，突出比周围暗的细小结构 (黑色细环)
+    #    内核尺寸应略大于环的线宽
+    kernel_blackhat = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25))
+    blackhat = cv2.morphologyEx(blurred, cv2.MORPH_BLACKHAT, kernel_blackhat)
+
+    # 6. Canny 边缘检测
+    edges = cv2.Canny(blackhat, 50, 150)
+
+    # 7. 形态学闭操作，连接 Canny 边缘检测后可能断开的边缘
+    kernel_close = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
+    closed_edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel_close)
+
+    # --- 轮廓分析与筛选 ---
+
+    # 8. 轮廓查找，使用 RETR_TREE 获取完整的层级关系
+    contours, hierarchy = cv2.findContours(closed_edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    found_rings = []
+
+    if hierarchy is not None:
+        # 遍历所有轮廓，寻找有子轮廓的父轮廓（即环）
+        for i, contour in enumerate(contours):
+            # hierarchy 格式: [Next, Previous, First_Child, Parent]
+            h = hierarchy[0][i]
+            # 条件：这是一个最外层的轮廓(没有父级) 并且 它有一个子轮廓
+            if h[3] == -1 and h[2] != -1:
+                child_contour = contours[h[2]]
+                
+                # --- 筛选条件 ---
+                outer_area = cv2.contourArea(contour)
+                inner_area = cv2.contourArea(child_contour)
+                
+                # 面积筛选：排除太小或太大的噪声
+                if outer_area < 500 or inner_area < 100:
+                    continue
+
+                # 圆度筛选：确保形状接近圆形 (可选但强烈推荐)
+                peri_outer = cv2.arcLength(contour, True)
+                if peri_outer == 0: continue
+                circularity_outer = (4 * np.pi * outer_area) / (peri_outer * peri_outer)
+                
+                if circularity_outer > 0.7: # 阈值可调，越接近1越圆
+                    (x, y), radius = cv2.minEnclosingCircle(contour)
+                    found_rings.append({
+                        'center': (int(x), int(y)),
+                        'radius': int(radius),
+                        'outer_contour': contour,
+                        'area': outer_area
+                    })
+
+    # --- 绘制结果 ---
+    if found_rings:
+        # 如果找到多个符合条件的环，选择面积最大的那个
+        best_ring = max(found_rings, key=lambda r: r['area'])
+        
+        center = best_ring['center']
+        radius = best_ring['radius']
+        
+        # 在 output_frame 上绘制
+        cv2.drawContours(output_frame, [best_ring['outer_contour']], -1, (0, 255, 0), 2)
+        cv2.circle(output_frame, center, 5, (0, 0, 255), -1)
+        cv2.circle(output_frame, center, radius, (0, 0, 255), 2)
+        
+        info_text = f"Center: {center}, R: {radius}"
+        cv2.putText(output_frame, info_text, (10, 30), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 255), 2)
+
+    # --- 显示所有图像 ---
+    cv2.imshow("Original", frame)
+    cv2.imshow("Detected Ring", output_frame)
+    cv2.imshow("Grayscale", gray)
+    cv2.imshow("Blackhat (Ring Highlighted)", blackhat)
+    cv2.imshow("Closed Edges (For Contours)", closed_edges)

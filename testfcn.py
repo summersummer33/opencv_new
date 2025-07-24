@@ -17,7 +17,7 @@ class FunctionHandler:
         self.frame_height = 720
         # 全局状态变量
         # 二维码信息
-        self.get_order = [2,3,1]
+        self.get_order = [3,2,1]
         self.put_order = [1,3,2]
         # 标志位
         # self.line_flag = 0
@@ -161,6 +161,8 @@ class FunctionHandler:
     # 粗定位函数：直线和圆环一起调整
     def cu_positioning(self, limit_circle=4, limit_line=0.5, timeout_cu=5):
         """粗定位车身位置（直线和圆环一起调整）"""
+        if not self.check_camera(self.cap,"上部摄像头"):
+            self.init_camera_up()
         # 在开始粗定位前，重置 together_line_circle1 的内部状态
         testdef.reset_together_state()
         
@@ -168,8 +170,8 @@ class FunctionHandler:
         print("cccccccccccc")
         line_flag=0   #粗调时的直线圆环标志位置0
         move_flag=0
-        while not self.cap.isOpened():
-            print("Not open colorcap")
+        # while not self.cap.isOpened():
+        #     print("Not open colorcap")
         # for i in range(2):
         #     q=cap.grab()
         ####粗调 圆环粗定位和直线一起调整
@@ -200,6 +202,8 @@ class FunctionHandler:
     # 细调函数：颜色定位和灰度定位
     def xi_positioning(self, circle_order, timeout_xi=2, run_time=3):
         """细调圆环位置（颜色定位和灰度定位）"""
+        if not self.check_camera(self.cap,"上部摄像头"):
+            self.init_camera_up()
         for i in range(run_time):
             ret=self.cap.grab()
             testdef.g_prev_smoothed_circle=None
@@ -255,17 +259,24 @@ class FunctionHandler:
             #细调第二步 灰度定中心（第一版-无到位后二次检测
             testdef.reset_circle_put_state()
             move_flag_color_2=0
-            while (not move_flag_color_2 and (time.time()-Time3)<timeout_xi):
+            cnt = 0
+            # while (not move_flag_color_2 and (time.time()-Time3)<timeout_xi):
             # while (not move_flag_color_2 ):
+            while( time.time()-Time3<timeout_xi):
                 print("xxxxxxxx")
                 timeee=time.time()
                 # detx,dety,move_flag_color_2=testdef.circlePut1(self.cap)
                 # detx,dety,move_flag_color_2=testdef.circlePut_hzw(self.cap)
                 detx,dety,move_flag_color_2=testdef.circlePut_det(self.cap)
-                if move_flag_color_2==0:
+                cnt += 1
+                # if move_flag_color_2==0:
+                #     testdef.sendMessage2(self.ser,detx,dety)
+                #     print("xitiao time:",time.time()-timeee)
+                if move_flag_color_2 == 1 and cnt>1:
+                    break
+                else:
                     testdef.sendMessage2(self.ser,detx,dety)
                     print("xitiao time:",time.time()-timeee)
-    
             # ###细调第二步 灰度定中心（第二版-到位后做二次检测-防止物料贴环边立即就放
             # move_flag_color_2_2=0
             # while (not move_flag_color_2_2 and (time.time()-Time3)<timeout_xi):
@@ -317,8 +328,10 @@ class FunctionHandler:
 
     def adjust_line_gray_yellow(self,timeout_line=3):
         """调整直线——灰黄交界"""
-        while not self.cap.isOpened():
-            print("Not open colorcap")
+        # while not self.cap.isOpened():
+        #     print("Not open colorcap")
+        if not self.check_camera(self.cap,"上部摄像头"):
+            self.init_camera_up()
         ####开始计时
         line_flag=0
         ret=self.cap.grab()
@@ -379,8 +392,10 @@ class FunctionHandler:
 
     def plate_adjust_then_put(self, plate_order, adjust_finely=0):
         i=0
-        while not self.cap.isOpened():
-            print("Not open colorcap")
+        # while not self.cap.isOpened():
+        #     print("Not open colorcap")
+        if not self.check_camera(self.cap,"上部摄像头"):
+            self.init_camera_up()
         print("plate_order:",plate_order)
         stop_flag=0
         # i=0
@@ -645,8 +660,10 @@ class FunctionHandler:
 
 
     def plate_adjust_then_put_pre_color_pro(self, plate_order, adjust_finely=0):
-        while not self.cap.isOpened():
-            print("Not open colorcap")
+        # while not self.cap.isOpened():
+        #     print("Not open colorcap")
+        if not self.check_camera(self.cap,"上部摄像头"):
+            self.init_camera_up()
         print("plate_order:",plate_order)
         stop_flag=0
         stop_flag_1=0
@@ -773,7 +790,7 @@ class FunctionHandler:
         cv2.destroyAllWindows()
 
 
-    def get_from_plate_check_eachtime(self, plate_order, run_time=3):
+    def get_from_plate_check_eachtime_old(self, plate_order, run_time=3):
         """夹完在物料盘处二次检查 次次检查"""
         if not self.check_camera(self.cap,"上部摄像头"):
             self.init_camera_up()
@@ -781,10 +798,12 @@ class FunctionHandler:
         i = 0   #运行轮数
         while i < run_time:
         ####依据颜色顺序循环处理3个物料
+            strat_time_get = time.time()
             # print("iii:",i)
             # flagno = testdef.detectPlate(cap, 1)
             ret=self.cap.grab()
             while not stop_flag:
+            # while not stop_flag and (time.time()-strat_time_get)<60: 
                 print("i:",i)
                 flag2 = testdef.detectPlate(self.cap,plate_order[i])
                 x_,y_,img_,flag1,detx,dety = testdef.findBlockCenter(self.cap,plate_order[i])
@@ -801,6 +820,10 @@ class FunctionHandler:
                     elif stop_flag == 3:
                         testdef.sendMessage(self.ser,9)
                     # testdef.sendMessage(ser,stop_flag)
+            # if not stop_flag:
+            #     i += 1
+            #     continue
+
             Time = time.time()
             stop_flag=0    #重置停止标志位，给下一轮使用
             flag_check=0    #初始化、重置检查物料是否夹到标志位
@@ -827,10 +850,85 @@ class FunctionHandler:
         cv2.destroyAllWindows()
 
 
+    def get_from_plate_check_eachtime(self, plate_order, run_time=3):
+        """夹完在物料盘处二次检查 次次检查 (使用嵌套循环结构优化)"""
+        if not self.check_camera(self.cap,"上部摄像头"):
+            self.init_camera_up()
+        i = 0
+        for i in range(run_time):
+            strat_time_get = time.time()
+            print(f"\n--- [第 {i+1}/{run_time} 轮] 开始处理物料 {plate_order[i]}，计时开始 ---")
+            while True:
+                if (time.time() - strat_time_get) > 60:
+                    print(f"警告：处理物料 {plate_order[i]} 总时间超过60秒，放弃并跳到下一个。")
+                    break  # 跳出内层 while True 循环，外层 for 循环会继续下一个 i
+
+                ret=self.cap.grab()
+                stop_flag = 0
+                while not stop_flag: 
+                    print(f"i:{i}, 正在寻找...")
+                    flag2 = testdef.detectPlate(self.cap,plate_order[i])
+                    x_,y_,img_,flag1,detx,dety = testdef.findBlockCenter(self.cap,plate_order[i])
+                    if  (flag2 == 1 and flag1 == 1):
+                        stop_flag = plate_order[i]
+                        print("stop_flag",stop_flag)
+                        testdef.sendMessage2(self.ser,detx,dety)
+                        time.sleep(0.05)
+                        if stop_flag == 1: testdef.sendMessage(self.ser,7)
+                        elif stop_flag == 2: testdef.sendMessage(self.ser,8)
+                        elif stop_flag == 3: testdef.sendMessage(self.ser,9)
+                        
+                # break
+
+
+                Time = time.time()
+                flag_check = 0
+                time_plate_check = 6.2
+                cv2.destroyAllWindows()
+                ret = self.cap.grab()
+                ret = self.cap.grab()
+                
+                while ((time.time()-Time)<time_plate_check):
+                    recv_check=testdef.receiveMessage(self.ser)
+                    print("recv_check",recv_check)
+                    if recv_check==b'check':
+                        time_start_check = time.time()
+                        print("start checkkkkkkkkkkkkkkkkkkk")
+                        flag_check=testdef.detectPlate_check(self.cap,plate_order[i])
+                        print("flag_chexk:",flag_check)
+                        break # 收到check信号就跳出检查等待
+
+                if flag_check:  
+                    print("next colorrrrrrrrrrrrrrrrrrrr")
+                    print(time.time()-time_start_check)
+                    break # 成功了，跳出内层 while True，外层 for 循环会自动进入下一个 i
+                else:  #没夹到仍等待第一个 (flag_check为False)
+                    print("重试")
+                    testdef.sendMessage(self.ser,3)
+                    print(time.time()-time_start_check)
+                
+        ret=self.cap.grab()
+        ret=self.cap.grab()
+        cv2.destroyAllWindows()
+
+
     def get_from_ground_in_line(self):
         '''在一条直线三个圆环处夹取物料 用于判定位置和颜色对应关系'''
-        while not self.cap.isOpened():
-            print("Not open colorcap")
+        # while not self.cap.isOpened():
+        #     print("Not open colorcap")
+        # if not self.cap.isOpened():
+        #     print("Not open colorcap")
+        if not self.check_camera(self.cap,"上部摄像头"):
+            self.init_camera_up()
+        self.init_camera_up()
+        print(self.cap.isOpened())
+        time.sleep(1)
+        self.init_camera_up()  # 初始化摄像头
+        print(self.cap.isOpened())
+        time.sleep(1)   
+        self.init_camera_up()  # 初始化摄像头
+        print(self.cap.isOpened())
+        time.sleep(1) 
         ret=self.cap.grab()
         get_order_blank=[]
         #开始计时
@@ -888,6 +986,71 @@ class FunctionHandler:
         testdef.sendMessage6(self.ser,get_order_blank)
 
         get_order_blank=[]
+
+
+    def get_from_ground_in_line_for_test(self):
+        '''在一条直线三个圆环处夹取物料 用于判定位置和颜色对应关系'''
+        # while not self.cap.isOpened():
+        #     print("Not open colorcap")
+        if not self.check_camera(self.cap,"上部摄像头"):
+            self.init_camera_up()
+        ret=self.cap.grab()
+        get_order_blank=[]
+        #开始计时
+        Time_l=time.time()
+        time_l=2
+        line_flag = 0
+        #调整车身姿态直到直线到位或超时
+        while (not line_flag and (time.time()-Time_l)<time_l):
+        # while (not line_flag ):
+            theta,line_flag=testdef.detectLine(self.cap)
+            if line_flag ==0:
+                testdef.sendMessage5(self.ser,theta,0,0)
+                print("main li de theta:",theta)
+        print("line_flag:",line_flag)
+        testdef.sendMessage(self.ser,39)
+        time.sleep(0.01)
+        testdef.sendMessage(self.ser,40)
+        time.sleep(0.01)
+        testdef.sendMessage(self.ser,68)
+
+        line_flag=0        
+        while True:
+            recv_first=testdef.receiveMessage(self.ser)
+            print("recv_first",recv_first)
+            if recv_first==b'nearground':
+                break
+        color_2=0
+        flag1=0
+        Time_xy=time.time()
+        time_xy=3
+        while (not flag1 and (time.time()-Time_xy)<time_xy):
+            x_,y_,img_,flag1,detx,dety,color_2= testdef.findBlockCenter_acquaint_color(self.cap)
+            if  (flag1 == 0):
+                testdef.sendMessage5(self.ser,0,detx,dety)
+        testdef.sendMessage(self.ser,68)
+        ret = self.cap.grab()
+        # flag1=0
+        # while True:
+        #     recv_first=testdef.receiveMessage(self.ser)
+        #     print("recv_first",recv_first)
+        #     if recv_first==b'nearground':
+        #         break
+
+        # color_1=0
+        # for i in range(2):
+        #     x_,y_,img_,flag2,detx,dety,color= testdef.findBlockCenter_acquaint_color(self.cap)
+        # ret = self.cap.grab()
+        # x_,y_,img_,flag2,detx,dety,color_1= testdef.findBlockCenter_acquaint_color(self.cap)
+        # get_order_blank.append(color_1)
+
+        # get_order_blank.append(color_2)
+        # color_3=6-color_1-color_2
+        # get_order_blank.append(color_3)
+
+        # testdef.sendMessage6(self.ser,get_order_blank)
+
+        # get_order_blank=[]
     
 
     def xi_positioning_update(self, circle_order, timeout_xi=2, run_time=3):
@@ -895,6 +1058,8 @@ class FunctionHandler:
         细调圆环位置（颜色定位和灰度定位）
         # 更新偏差值
         """
+        if not self.check_camera(self.cap,"上部摄像头"):
+            self.init_camera_up()
         for i in range(run_time):
             ret=self.cap.grab()
             testdef.g_prev_smoothed_circle=None

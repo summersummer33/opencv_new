@@ -60,7 +60,7 @@ while True:
     # detx,dety,move_flag_color_2=testdef.circlePut1(cap)
     # detx,dety,move_flag_color_2=testdef.circlePut_hzw(cap)
     # detx,dety,move_flag_color_2=testdef.circlePut_ds(cap)
-    theta,line_flag,detx,dety,move_flag=testdef.together_line_circle1(cap)
+    # theta,line_flag,detx,dety,move_flag=testdef.together_line_circle1(cap)
     # a,b,frame,flag_color_1,detx_p,dety_p=findBlockCenter11(cap,2)
     # x_,y_,img_,flag9,detx9,dety9,color = testdef.findBlockCenter_gray(cap)
     # x_,y_,img_,flag9,detx9,dety9= testdef.findBlockCenter(cap,2,is_check=1)
@@ -84,6 +84,8 @@ while True:
     # x_,y_,img_,flag1,detx,dety,color_2= testdef.findBlockCenter_acquaint_color(cap)
     # flag2 = testdef.detectPlate(cap,1)
     # testdef.find_inner_circle_on_cylinder(cap,1,hough=0)
+    testdef.enhance_and_find_ring(cap)
+    # x_,y_,img_,flag1,detx,dety = testdef.findBlockCenter(cap,3)
     cv2.waitKey(1)    
 
 cap.release()

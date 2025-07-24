@@ -21,11 +21,11 @@ while True:
         print("recv_mess:",recv_mess)
     if recv_mess != None:
         #### 根据接收到的指令更新recv
-        if recv_mess in [b'AA', b'BB1', b'BB2', b'CC12', b'CC3', b'CC4',  b'EE', 
-                         b'FF', b'GG', b'HH', b'II', b'JJ', b'KK12', b'KK3', b'LL', b'MM', b'NN1', b'NN2',
+        if recv_mess in [b'AA', b'BB1', b'BB2', b'CC12', b'CC3', b'CC4', b'CC5', b'EE', 
+                         b'FF', b'GG', b'HH', b'II', b'JJ', b'KK12', b'KK3', b'LL1', b'LL2', b'MM', b'NN1', b'NN2',
                          b'OO', b'PP', b'QQ',
                          b'st', b'end',
-                         b'DD']:
+                         b'DD', b'II2']:
             recv=recv_mess
 
 
@@ -35,8 +35,8 @@ while True:
 
 ####识别二维码、条形码
     if recv == b'AA':
+        start_time = time.time()
         handler.get_code()
-        handler.init_camera_up()  # 初始化摄像头
         recv = b'st'
 
 ####识别转盘 夹取物料（正常流程
@@ -63,10 +63,23 @@ while True:
         handler.xi_positioning(handler.put_order,run_time=3)
         recv = b'st'
 
-    #粗调
+    #粗调-码垛-省赛计时使用
     elif recv == b'CC4':
-        handler.cu_positioning(40,3)
+        run_time = time.time()-start_time
+        print("run_time:",run_time)
+        if run_time < 160:
+            handler.cu_positioning(limit_circle=20, limit_line=1)
+        elif run_time > 170:
+            handler.cu_positioning(limit_circle=200, limit_line=10)
+        else: 
+            handler.cu_positioning(limit_circle=40, limit_line=3)
+
         # handler.cu_positioning()
+        recv = b'st'
+
+    #粗调-测试路径
+    elif recv == b'CC5':
+        handler.cu_positioning()
         recv = b'st'
 
 ####识别直线 在转盘旁调整车身
@@ -90,18 +103,24 @@ while True:
 ############有个问题：：：该代码原来是适配转盘上是小的色块的，判断色块停止时，右边有个长方形，圆没完全转出来，长方形也不动，会在圆没有转到位时就误判断为静止，
 ############但是呢，由于我们回去抓的很慢，这可以让我们提前转回去，效果更好。了吗？
 ############解决办法：加面积限定值（适配圆环）/限制到视野中间时再判断
+
+####识别转盘 放置物料 当次颜色放置
     elif recv == b'HH':
         handler.plate_adjust_then_put(handler.get_order)
         recv = b'st'
 
+####识别转盘 放置物料 前一个颜色放置
+    elif recv == b'LL1':
+        handler.plate_adjust_then_put_pre_color_pro(handler.get_order,adjust_finely=0)
+        recv = b'st'
 
-    elif recv == b'LL':
-        handler.plate_adjust_then_put_pre_color_pro(handler.get_order,adjust_finely=1)
+    elif recv == b'LL2':
+        handler.plate_adjust_then_put_pre_color_pro(handler.put_order,adjust_finely=0)
         recv = b'st'
 
 ############测试:识别转盘 夹取物料（回到物料盘 次次检查
     elif recv==b'NN1':
-        handler.get_from_plate_check_eachtime(handler.get_order, run_time=2)
+        handler.get_from_plate_check_eachtime(handler.get_order, run_time=3)
         recv = b'st'
 
     elif recv==b'NN2':
@@ -111,6 +130,11 @@ while True:
 ####在一条直线三个圆环处夹取物料 用于判定位置和颜色对应关系
     elif recv==b'II':
         handler.get_from_ground_in_line()
+        recv = b'st'
+
+    #用于调整路径
+    elif recv==b'II2':
+        handler.get_from_ground_in_line_for_test()
         recv = b'st'
 
 ####识别圆环 放置物料（物料夹不紧时，更新偏差值
