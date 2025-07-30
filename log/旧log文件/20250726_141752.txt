@@ -1,0 +1,48 @@
+2025-07-26 14:18:14,042 - INFO - helloworld
+2025-07-26 14:18:14,502 - INFO - 保存图片: code_image_20250726_141814.jpg
+2025-07-26 14:18:14,502 - INFO - 222     successsssssssss
+2025-07-26 14:18:15,913 - INFO - 222     successsssssssss
+2025-07-26 14:18:16,000 - INFO - 222     successsssssssss
+2025-07-26 14:18:16,095 - INFO - 222     successsssssssss
+2025-07-26 14:18:16,215 - INFO - 222     successsssssssss
+2025-07-26 14:18:16,334 - INFO - 222     successsssssssss
+2025-07-26 14:18:16,464 - INFO - 222     successsssssssss
+2025-07-26 14:18:16,578 - INFO - 222     successsssssssss
+2025-07-26 14:18:16,695 - INFO - 222     successsssssssss
+2025-07-26 14:18:16,814 - INFO - 222     successsssssssss
+2025-07-26 14:18:16,934 - INFO - 222     successsssssssss
+2025-07-26 14:18:17,054 - INFO - 222     successsssssssss
+2025-07-26 14:18:17,174 - INFO - 222     successsssssssss
+2025-07-26 14:18:17,294 - INFO - 222     successsssssssss
+2025-07-26 14:18:17,414 - INFO - 222     successsssssssss
+2025-07-26 14:18:17,534 - INFO - 222     successsssssssss
+2025-07-26 14:18:17,654 - INFO - 222     successsssssssss
+2025-07-26 14:18:17,774 - INFO - 222     successsssssssss
+2025-07-26 14:18:17,894 - INFO - 222     successsssssssss
+2025-07-26 14:18:18,015 - INFO - 222     successsssssssss
+2025-07-26 14:18:18,135 - INFO - 222     successsssssssss
+2025-07-26 14:18:18,255 - INFO - 222     successsssssssss
+2025-07-26 14:18:18,374 - INFO - 222     successsssssssss
+2025-07-26 14:18:18,494 - INFO - 222     successsssssssss
+2025-07-26 14:18:18,615 - INFO - 222     successsssssssss
+2025-07-26 14:18:18,735 - INFO - 222     successsssssssss
+2025-07-26 14:18:18,855 - INFO - 222     successsssssssss
+2025-07-26 14:18:18,975 - INFO - 222     successsssssssss
+2025-07-26 14:18:19,095 - INFO - 222     successsssssssss
+2025-07-26 14:18:19,214 - INFO - 222     successsssssssss
+2025-07-26 14:18:19,334 - INFO - 222     successsssssssss
+2025-07-26 14:18:19,460 - INFO - 222     successsssssssss
+2025-07-26 14:18:19,575 - INFO - 222     successsssssssss
+2025-07-26 14:18:19,694 - INFO - 222     successsssssssss
+2025-07-26 14:18:19,815 - INFO - 222     successsssssssss
+2025-07-26 14:18:19,935 - INFO - 222     successsssssssss
+2025-07-26 14:18:20,058 - INFO - 222     successsssssssss
+2025-07-26 14:18:20,176 - INFO - 222     successsssssssss
+2025-07-26 14:18:20,297 - INFO - 222     successsssssssss
+2025-07-26 14:18:20,417 - INFO - 222     successsssssssss
+2025-07-26 14:18:20,536 - INFO - 222     successsssssssss
+2025-07-26 14:18:20,609 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-26 14:18:20,612 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-26 14:18:20,614 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-26 14:21:32,772 - INFO - 程序被用户中断
+2025-07-26 14:21:32,773 - INFO - 正在清理资源...

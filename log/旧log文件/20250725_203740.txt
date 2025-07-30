@@ -1,0 +1,12 @@
+2025-07-25 20:38:03,762 - INFO - helloworld
+2025-07-25 20:38:04,235 - INFO - 保存图片: code_image_20250725_203804.jpg
+2025-07-25 20:38:04,235 - INFO - 222     successsssssssss
+2025-07-25 20:38:05,479 - INFO - 222     successsssssssss
+2025-07-25 20:38:05,570 - INFO - 222     successsssssssss
+2025-07-25 20:38:05,658 - INFO - 222     successsssssssss
+2025-07-25 20:38:05,778 - INFO - 222     successsssssssss
+2025-07-25 20:38:05,898 - INFO - 222     successsssssssss
+2025-07-25 20:38:05,948 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-25 20:38:05,950 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-25 20:38:05,952 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-25 21:15:52,520 - INFO - 正在清理资源...

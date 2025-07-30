@@ -6,7 +6,7 @@ import math
 import time
 import serial 
 from pyzbar.pyzbar import decode  
-
+import logging
 
 #颜色hsv
 #绿色 hmin值太小会看见黄色 太大会看不见浅绿
@@ -30,7 +30,7 @@ block_area=0.039
 #粗调时0.016
 cutiao_center_circle=0.0097
 
-#放的偏右了x值就+，偏下了y值就-
+#!放的偏右了x值就+，偏下了y值就-
 
 #new paw
 #cedingzhi 30 13
@@ -39,7 +39,7 @@ cutiao_center_circle=0.0097
 #40  -7
 #30  7 #jiangxialai qian
 #粗调时高度偏差值(findcontours)
-correct_x=42
+correct_x=40
 correct_y=14
 
 #new paw
@@ -51,8 +51,8 @@ correct_y=14
 #37  6
 #45  7
 #细调时高度的偏差值(houghcircles)
-correct_x_hough=40
-correct_y_hough=16
+correct_x_hough=36
+correct_y_hough=14
 #存储默认值
 correct_x_hough_default=correct_x_hough
 correct_y_hough_default=correct_y_hough
@@ -331,7 +331,7 @@ def together_line_circle1(cap, limit_position_circle=4, limit_position_line=0.5)
     return finaltheta,line_flag,detx1,dety1,stop_flag
 
 
-def together_line_circle_det(cap, limit_position_circle=4, limit_position_line=0.5):  #粗调 直线+圆（findContours 看中间圆环-绿色
+def together_line_circle_det(cap, limit_position_circle, limit_position_line):  #粗调 直线+圆（findContours 看中间圆环-绿色
     '''加入帧间差值判断'''
     global g_together_state  # 声明使用全局变量
     VELOCITY_CIRCLE = 5   # 圆心位置变化阈值
@@ -341,7 +341,7 @@ def together_line_circle_det(cap, limit_position_circle=4, limit_position_line=0
     res1 = frame.copy()
     h, w = res1.shape[:2]
 
-    #####################line图像处理#################################
+    #####################line图像处理#################################s
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)   #ת Ҷ ͼ
     equalized = cv2.equalizeHist(gray)
     # cv2.imshow("junheng",equalized)
@@ -483,9 +483,21 @@ def together_line_circle_det(cap, limit_position_circle=4, limit_position_line=0
     line_flag=0
     if abs(finaltheta)<limit_position_line:
         line_flag=1
-    finaltheta=int(round(finaltheta))
+    # finaltheta=int(round(finaltheta))
     if (finaltheta==90 ):
         finaltheta=0
+    finaltheta=finaltheta * 10
+    finaltheta=int(round(finaltheta))
+
+    # TARGET_ANGLE = 0.4  # 定义目标角度
+    # theta_error = finaltheta - TARGET_ANGLE
+    # print("finaltheta:",finaltheta,"theta_error:",theta_error)
+    # if abs(theta_error) < limit_position_line:
+    #     line_flag=1
+    # theta_to_return = int(round(theta_error*10))
+    # if (finaltheta==90 ):
+    #     theta_to_return=0
+    # print("theta_to_return:",theta_to_return/10,"line_flag:",line_flag)
 
     #####################识别圆环
     contours_g, _ = cv2.findContours(img_green, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -524,17 +536,17 @@ def together_line_circle_det(cap, limit_position_circle=4, limit_position_line=0
         # y_incolor=h/2-y-correct_y_hough
         detx1=int(round(x_incolor))
         dety1=int(round(y_incolor))
-        print("cccccccccccccccccccccccccccccccccccccc")
+        # print("cccccccccccccccccccccccccccccccccccccc")
         global flag_in
         flag_in=1
     else:
         cv2.putText(res1, 'No circle found', (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
         detx1=int(round(x_g_new + w_g_new/2 -w/2 -correct_x))
         dety1=int(round(h/2 - y_g_new - h_g_new/2 -correct_y))
-        print("nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn")
+        # print("nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn")
 
 
-    print("x_incolor:",x_incolor,"y_incolor:",y_incolor)
+    # print("x_incolor:",x_incolor,"y_incolor:",y_incolor)
     print("detx1:",detx1,"dety1:",dety1)
     # det=4
     vel_x, vel_y = 0, 0
@@ -796,6 +808,29 @@ def circlePut_det(cap):  # 细调第二步 灰度houghcircles识别圆心
     blurred1[:, 1160:1280] = 0 # 假设图像宽度为1280，这里根据你的实际分辨率调整
     cv2.imshow("blurred1", blurred1)
 
+    # ###################### 使用CLAHE增强对比度
+    
+    # lab = cv2.cvtColor(frame, cv2.COLOR_LAB2BGR)
+    
+    # # 分离L, a, b通道
+    # l, a, b = cv2.split(lab)
+    
+    # # 对L（亮度）通道应用CLAHE
+    # clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+    # cl = clahe.apply(l)
+    
+    # # 合并处理后的L通道和原始的a,b通道
+    # limg = cv2.merge((cl, a, b))
+    
+    # # 将图像从LAB转换回BGR
+    # enhanced_frame = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
+    # gray = cv2.cvtColor(enhanced_frame, cv2.COLOR_BGR2GRAY)
+    # cv2.imshow("enhanced_frame", enhanced_frame)
+    # blurred2 = cv2.GaussianBlur(gray, (9, 9), 2)
+    # cv2.imshow("blurred", blurred2)
+
+
+
     # 使用HoughCircles检测圆
     # param1: Canny边缘检测的高阈值，低阈值是其一半
     # param2: 累加器阈值，越小表示检测到的圆越多
@@ -909,7 +944,7 @@ def circlePut_det(cap):  # 细调第二步 灰度houghcircles识别圆心
         # 1. 判断位置是否到位
         position_ok = abs(detx) < POSITION_THRESHOLD and abs(dety) < POSITION_THRESHOLD
         
-        # 2. 计算并判断“速度”是否到位
+        # 2. 计算并判断"速度"是否到位
         vel_x, vel_y = 0, 0
         if g_circle_put_state["prev_detx"] is not None:
             vel_x = detx - g_circle_put_state["prev_detx"]
@@ -1347,8 +1382,12 @@ def findBlockCenter_acquaint_color(color_cap):
     cv2.waitKey(1)    
     return x_center/w, y_center/h, frame, flag, detx_p, dety_p, color_number
 
-def findBlockCenter(color_cap, color_number, is_check=0): #转盘处识别色块中心位置
-    """转盘处识别色块中心位置"""
+def findBlockCenter(color_cap, color_number, is_check=0, is_get_from_plate=0): #转盘处识别色块中心位置
+    """
+    转盘处识别色块中心位置
+    :is_check: 是否检查（转盘上只看爪子里位置）
+    :is_get_from_plate: 是否从转盘上获取（若绿色黄色混淆则切掉左右三角）
+    """
     # 获取图像帧
     ret, frame = color_cap.read()
 
@@ -1367,9 +1406,22 @@ def findBlockCenter(color_cap, color_number, is_check=0): #转盘处识别色块
         closed = closed * mask  # 利用广播机制
     # 分析轮廓（选择最上方的色块）
     h, w = frame.shape[:2]
-    if color_number == 2:
-        closed[:, :160] = 0
-        closed[:, 1120:1280] = 0
+    if is_get_from_plate == 1 and color_number == 2:
+        # 创建左下角和右下角的三角形掩码
+        mask = np.ones_like(closed) * 255  # 创建全白掩码
+        #左下角点 (x, y)，底边右端点 ，左边上端点
+        left_triangle = np.array([[0, h], [240, h], [0, 270]])
+        right_triangle = np.array([[w-240, h], [w, h], [w, 270]])
+        cv2.fillPoly(mask, [left_triangle, right_triangle], 0)
+        closed = cv2.bitwise_and(closed, mask)
+        
+        # 在frame上绘制三角形
+        cv2.fillPoly(frame, [left_triangle], (0, 255, 0))  # 绿色填充
+        cv2.fillPoly(frame, [right_triangle], (0, 255, 0))  # 绿色填充
+        # 绘制三角形轮廓
+        cv2.polylines(frame, [left_triangle], True, (255, 0, 0), 2)  # 蓝色轮廓
+        cv2.polylines(frame, [right_triangle], True, (255, 0, 0), 2)  # 蓝色轮廓
+        
 
     cv2.imshow("closed",closed)
     contours, _ = cv2.findContours(closed, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -2004,16 +2056,26 @@ def detectLine_gray(color_cap):   #直线检测（黄灰交界线
     cv2.imshow("line",frame)
     line_flag=0
     # if(abs(finaltheta)<0.8  and abs(finaltheta)>0.1):
-    if abs(finaltheta)<0.5:
-    # if abs(finaltheta)<1:
-        line_flag=1
-    # if finaltheta<-0.5 and finaltheta>-1.5:
+
+
+    # if abs(finaltheta)<0.5:
     #     line_flag=1
-    finaltheta=int(round(finaltheta))
+    # finaltheta=int(round(finaltheta))
+    # if (finaltheta==90 ):
+    #     finaltheta=0
+
+
+    TARGET_ANGLE = 0  # 定义目标角度
+    theta_error = finaltheta - TARGET_ANGLE
+    if abs(theta_error) < 0.5:
+        line_flag=1
+    theta_to_return=int(round(theta_error*10))
     if (finaltheta==90 ):
-        finaltheta=0
+        theta_to_return=0
+    print("theta_error:",theta_error,"theta_to_return:",theta_to_return/10)
+
     cv2.waitKey(1)
-    return finaltheta,line_flag
+    return theta_to_return,line_flag
 
 def apply_temporal_filter(current_results,smooth_factor=0.4):
     """
@@ -2109,12 +2171,24 @@ def simple_cluster(points, eps=20, min_samples=2):
     return labels
 
 
+# 添加全局变量控制是否已保存图片
+has_saved_image = False
+
 def code(code_cap):  #识别二维码、条形码
     '''识别二维码、条形码'''
+    global has_saved_image
     ret,frame = code_cap.read()
     ret,frame = code_cap.read()
     ret,frame = code_cap.read()
     if code_cap.isOpened():
+        # # 只在未保存过图片时保存
+        # if not has_saved_image and ret:
+        #     timestamp = time.strftime("%Y%m%d_%H%M%S")
+        #     if not os.path.exists('captured_images'):
+        #         os.makedirs('captured_images')
+        #     cv2.imwrite(f'captured_images/code_image_{timestamp}.jpg', frame)
+        #     print(f"保存图片: code_image_{timestamp}.jpg")
+        #     has_saved_image = True
         print("222     successsssssssss")
     else:
         print("222     faillllllllll")
@@ -2127,7 +2201,7 @@ def code(code_cap):  #识别二维码、条形码
     barcodes = decode(frame)  
     flag = 0
     data = []
-    # cv2.waitKey(10)
+    cv2.waitKey(1)
 
     for barcode in barcodes:
         data = barcode.data.decode("utf8")
@@ -2252,6 +2326,8 @@ def sendMessage3(ser, data):    #发送二维码信息
         ser.write(combined_data_hex)
         print(combined_data_hex)
         # print(combined_data_hex)
+
+        # print(combined_data_hex)
     else:
         data_hex = hex(data)[2:]
         data_hex = data_hex.zfill(2)
@@ -2282,6 +2358,7 @@ def sendMessage5(ser, data_l, data_x, data_y):   #发送偏差值 粗调 直线+
     else:
         signal_l = 2
         data_l = abs(data_l)  # 取绝对值
+    data_l = min(abs(data_l), 255)
     # 处理 data_x
     if data_x >= 0:
         signal_x = 1
@@ -2409,7 +2486,7 @@ def find_inner_circle_on_cylinder(cap, color_number, hough=1):
         # - image: 输入的灰度图
         # - method: 检测方法，一般用 cv2.HOUGH_GRADIENT
         # - dp: 累加器分辨率与图像分辨率的反比。dp=1 表示同样的分辨率。dp=2 表示累加器是图像的一半。
-        # - minDist: 检测到的圆心之间的最小距离。这是为了防止在同一个圆上检测到多个“邻居”圆。
+        # - minDist: 检测到的圆心之间的最小距离。这是为了防止在同一个圆上检测到多个"邻居"圆。
         # - param1: Canny边缘检测的高阈值（低阈值是它的一半）。
         # - param2: 累加器阈值。这个值越小，能检测到的圆越多（包括假的）。
         # - minRadius, maxRadius: 圆半径的最小和最大值。这是非常有用的过滤器！
@@ -2574,3 +2651,111 @@ def enhance_and_find_ring(cap):
     cv2.imshow("Grayscale", gray)
     cv2.imshow("Blackhat (Ring Highlighted)", blackhat)
     cv2.imshow("Closed Edges (For Contours)", closed_edges)
+
+
+
+
+
+
+
+def display_contour_areas(cap, color_number=None, min_area_threshold=500):
+    """
+    实时检测物体，并在屏幕上显示其面积信息。
+    如果提供了 color_number，则按颜色分割。
+    如果 color_number 为 None，则按灰度进行分割。
+
+    :param frame: 原始摄像头图像。
+    :param color_number: 颜色编号 (1:红, 2:绿, 3:蓝) 或 None。
+    :param min_area_threshold: 最小面积过滤阈值。
+    :return: 处理后带有标注信息的图像。
+    """
+    ret, frame = cap.read()
+    if not ret:
+        return
+    mask = None
+    
+    # --- 1. 根据 color_number 决定处理方式 ---
+    if color_number is not None and color_number in [1, 2, 3]:
+        # --- 颜色处理流程 ---
+        # 调用已有的预处理函数来获取二值掩膜
+        print(f"模式: 颜色分割 (颜色: {color_number})")
+        mask, _ = preprocess_image(frame, color_number=color_number)
+    else:
+        # --- 灰度处理流程 ---
+        print("模式: 灰度分割")
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+
+        gamma = 0.5
+        invgamma = 1 / gamma
+        gamma_image = np.array(np.power((gray / 255.0), invgamma) * 255, dtype=np.uint8)
+        # cv2.imshow("gamma", gamma_image)
+
+        # 高斯模糊
+        blurred1 = cv2.GaussianBlur(gamma_image, (9, 9), 2)
+        
+        # 对灰度阈值结果进行形态学操作，清理噪点
+        kernel = np.ones((5, 5), np.uint8)
+        closed = cv2.morphologyEx(blurred1, cv2.MORPH_CLOSE, kernel)
+        opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, kernel)
+        edges = cv2.Canny(opened, 50, 150)
+        mask = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
+        kernel1 = np.ones((7, 7), np.uint8)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel1)
+
+        cv2.imshow("mask", mask)
+
+    if mask is None:
+        return frame # 如果掩膜生成失败，返回原图
+
+    # 创建一个副本用于绘制，避免在原始帧上直接操作
+    output_frame = frame.copy()
+    
+    # --- 2. 寻找、分析和绘制轮廓 (这部分逻辑是共用的) ---
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    for cnt in contours:
+        contour_area = cv2.contourArea(cnt)
+        if contour_area < min_area_threshold:
+            continue
+            
+        # --- 计算两种外接矩形 ---
+        
+        # 1. 最小面积（可旋转）外接矩形
+        min_rect = cv2.minAreaRect(cnt)
+        min_rect_area = min_rect[1][0] * min_rect[1][1]
+        box = cv2.boxPoints(min_rect)
+        box = np.int0(box)
+        
+        # 2. 垂直（不可旋转）外接矩形
+        x, y, w, h = cv2.boundingRect(cnt)
+        bounding_rect_area = w * h
+        
+        # --- 在图像上绘制和标注 ---
+        
+        # 绘制真实轮廓 (绿色)
+        cv2.drawContours(output_frame, [cnt], -1, (0, 255, 0), 2)
+        # # 绘制最小外接矩形 (红色)
+        # cv2.drawContours(output_frame, [box], 0, (0, 0, 255), 2)
+        # 绘制垂直外接矩形 (蓝色)
+        cv2.rectangle(output_frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+        # 准备文本
+        text_contour = f"Contour: {contour_area:.0f}"
+        text_min_rect = f"MinRect: {min_rect_area:.0f}"
+        text_bound_rect = f"BoundRect: {bounding_rect_area:.0f}"
+        
+        # 在质心位置显示文本
+        M = cv2.moments(cnt)
+        if M["m00"] != 0:
+            cx = int(M["m10"] / M["m00"])
+            cy = int(M["m01"] / M["m00"])
+        else:
+            cx, cy = int(min_rect[0][0]), int(min_rect[0][1])
+
+        cv2.putText(output_frame, text_contour, (cx - 80, cy - 25), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+        # cv2.putText(output_frame, text_min_rect, (cx - 80, cy), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+        cv2.putText(output_frame, text_bound_rect, (cx - 80, cy + 25), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+        
+    cv2.imshow("output_frame", output_frame)
+    cv2.waitKey(1)

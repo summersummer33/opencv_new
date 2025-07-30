@@ -1,0 +1,63 @@
+2025-07-27 15:42:49,722 - INFO - helloworld
+2025-07-27 15:42:50,191 - INFO - 保存图片: code_image_20250727_154250.jpg
+2025-07-27 15:42:50,191 - INFO - 222     successsssssssss
+2025-07-27 15:42:51,552 - INFO - 222     successsssssssss
+2025-07-27 15:42:51,641 - INFO - 222     successsssssssss
+2025-07-27 15:42:51,739 - INFO - 222     successsssssssss
+2025-07-27 15:42:51,809 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-27 15:42:51,811 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-27 15:42:51,814 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-27 15:46:34,550 - INFO - helloworld
+2025-07-27 15:46:35,006 - INFO - 222     successsssssssss
+2025-07-27 15:46:35,151 - INFO - 222     successsssssssss
+2025-07-27 15:46:35,263 - INFO - 222     successsssssssss
+2025-07-27 15:46:35,364 - INFO - 222     successsssssssss
+2025-07-27 15:46:35,482 - INFO - 222     successsssssssss
+2025-07-27 15:46:35,602 - INFO - 222     successsssssssss
+2025-07-27 15:46:35,722 - INFO - 222     successsssssssss
+2025-07-27 15:46:35,842 - INFO - 222     successsssssssss
+2025-07-27 15:46:35,962 - INFO - 222     successsssssssss
+2025-07-27 15:46:36,081 - INFO - 222     successsssssssss
+2025-07-27 15:46:36,201 - INFO - 222     successsssssssss
+2025-07-27 15:46:36,320 - INFO - 222     successsssssssss
+2025-07-27 15:46:36,440 - INFO - 222     successsssssssss
+2025-07-27 15:46:36,560 - INFO - 222     successsssssssss
+2025-07-27 15:46:36,607 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-27 15:46:36,609 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-27 15:46:36,612 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-27 15:52:08,331 - INFO - helloworld
+2025-07-27 15:52:08,781 - INFO - 222     successsssssssss
+2025-07-27 15:52:08,918 - INFO - 222     successsssssssss
+2025-07-27 15:52:09,023 - INFO - 222     successsssssssss
+2025-07-27 15:52:09,143 - INFO - 222     successsssssssss
+2025-07-27 15:52:09,262 - INFO - 222     successsssssssss
+2025-07-27 15:52:09,383 - INFO - 222     successsssssssss
+2025-07-27 15:52:09,540 - INFO - 222     successsssssssss
+2025-07-27 15:52:09,675 - INFO - 222     successsssssssss
+2025-07-27 15:52:09,775 - INFO - 222     successsssssssss
+2025-07-27 15:52:09,872 - INFO - 222     successsssssssss
+2025-07-27 15:52:09,981 - INFO - 222     successsssssssss
+2025-07-27 15:52:10,100 - INFO - 222     successsssssssss
+2025-07-27 15:52:10,220 - INFO - 222     successsssssssss
+2025-07-27 15:52:10,340 - INFO - 222     successsssssssss
+2025-07-27 15:52:10,392 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-27 15:52:10,395 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-27 15:52:10,397 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-27 15:54:25,156 - INFO - helloworld
+2025-07-27 15:54:25,847 - INFO - 222     successsssssssss
+2025-07-27 15:54:26,008 - INFO - 222     successsssssssss
+2025-07-27 15:54:26,130 - INFO - 222     successsssssssss
+2025-07-27 15:54:26,249 - INFO - 222     successsssssssss
+2025-07-27 15:54:26,352 - INFO - 222     successsssssssss
+2025-07-27 15:54:26,454 - INFO - 222     successsssssssss
+2025-07-27 15:54:26,567 - INFO - 222     successsssssssss
+2025-07-27 15:54:26,687 - INFO - 222     successsssssssss
+2025-07-27 15:54:26,807 - INFO - 222     successsssssssss
+2025-07-27 15:54:26,926 - INFO - 222     successsssssssss
+2025-07-27 15:54:27,046 - INFO - 222     successsssssssss
+2025-07-27 15:54:27,167 - INFO - 222     successsssssssss
+2025-07-27 15:54:27,221 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-27 15:54:27,223 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-27 15:54:27,225 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-27 16:04:08,921 - INFO - 程序被用户中断
+2025-07-27 16:04:08,922 - INFO - 正在清理资源...

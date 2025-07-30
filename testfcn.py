@@ -5,6 +5,8 @@ import time
 import serial 
 # import testdef
 import testdef_pro as testdef
+import os
+import logging
 
 
 class FunctionHandler:
@@ -17,7 +19,7 @@ class FunctionHandler:
         self.frame_height = 720
         # 全局状态变量
         # 二维码信息
-        self.get_order = [3,2,1]
+        self.get_order = [2,3,1]
         self.put_order = [1,3,2]
         # 标志位
         # self.line_flag = 0
@@ -159,8 +161,11 @@ class FunctionHandler:
 
 
     # 粗定位函数：直线和圆环一起调整
-    def cu_positioning(self, limit_circle=4, limit_line=0.5, timeout_cu=5):
+    def cu_positioning(self, limit_circle, limit_line, timeout_cu=5):
+        # if limit_line is None:
+        #     limit_line = 0.3
         """粗定位车身位置（直线和圆环一起调整）"""
+
         if not self.check_camera(self.cap,"上部摄像头"):
             self.init_camera_up()
         # 在开始粗定位前，重置 together_line_circle1 的内部状态
@@ -185,7 +190,7 @@ class FunctionHandler:
             theta,line_flag,detx,dety,move_flag=testdef.together_line_circle_det(self.cap,limit_position_circle=limit_circle, 
                                                                               limit_position_line=limit_line)
             if line_flag==0 or move_flag==0:
-                if line_flag ==1:   #直线到位则后续角度一直为0
+                if line_flag ==1:   #直线到位则后续角度一直为0（这个逻辑真的能实现吗？--by cy）
                     theta=0
                 if move_flag ==1:   #圆环到位则后续xy一直为0
                     detx=0
@@ -335,6 +340,9 @@ class FunctionHandler:
         ####开始计时
         line_flag=0
         ret=self.cap.grab()
+
+
+
         Time_l=time.time()
         ####调整车身姿态直到直线到位或超时
         while (not line_flag and (time.time()-Time_l)<timeout_line):
@@ -745,7 +753,7 @@ class FunctionHandler:
                                     time.sleep(0.01)
                             if stop_flag_1==1:
                                 testdef.sendMessage(self.ser,57)
-                                time.sleep(3.5)#避免在该圆环下定位后立即判断该色到位，加一个延时，放掉这个圆环，对
+                                time.sleep(3.5)#!避免在该圆环下定位后立即判断该色到位，加一个延时，放掉这个圆环，对
                             else:
                                 print("chaoshilechaoshilechaoshilechaoshile")
                                 time.sleep(2)
@@ -882,7 +890,7 @@ class FunctionHandler:
 
 
                 Time = time.time()
-                flag_check = 0
+                flag_check = 0  #! 这里是否空抓的标志位初始值应该为0吗？
                 time_plate_check = 6.2
                 cv2.destroyAllWindows()
                 ret = self.cap.grab()

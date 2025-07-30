@@ -1,0 +1,73 @@
+2025-07-25 16:22:49,298 - INFO - helloworld
+2025-07-25 16:22:49,761 - INFO - 保存图片: code_image_20250725_162249.jpg
+2025-07-25 16:22:49,762 - INFO - 222     successsssssssss
+2025-07-25 16:22:51,063 - INFO - 222     successsssssssss
+2025-07-25 16:22:51,154 - INFO - 222     successsssssssss
+2025-07-25 16:22:51,270 - INFO - 222     successsssssssss
+2025-07-25 16:22:51,316 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-25 16:22:51,318 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-25 16:22:51,320 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-25 16:25:42,694 - INFO - helloworld
+2025-07-25 16:25:43,150 - INFO - 222     successsssssssss
+2025-07-25 16:25:43,271 - INFO - 222     successsssssssss
+2025-07-25 16:25:43,390 - INFO - 222     successsssssssss
+2025-07-25 16:25:43,510 - INFO - 222     successsssssssss
+2025-07-25 16:25:43,632 - INFO - 222     successsssssssss
+2025-07-25 16:25:43,750 - INFO - 222     successsssssssss
+2025-07-25 16:25:43,869 - INFO - 222     successsssssssss
+2025-07-25 16:25:43,990 - INFO - 222     successsssssssss
+2025-07-25 16:25:44,113 - INFO - 222     successsssssssss
+2025-07-25 16:25:44,229 - INFO - 222     successsssssssss
+2025-07-25 16:25:44,349 - INFO - 222     successsssssssss
+2025-07-25 16:25:44,469 - INFO - 222     successsssssssss
+2025-07-25 16:25:44,589 - INFO - 222     successsssssssss
+2025-07-25 16:25:44,709 - INFO - 222     successsssssssss
+2025-07-25 16:25:44,829 - INFO - 222     successsssssssss
+2025-07-25 16:25:44,949 - INFO - 222     successsssssssss
+2025-07-25 16:25:45,069 - INFO - 222     successsssssssss
+2025-07-25 16:25:45,191 - INFO - 222     successsssssssss
+2025-07-25 16:25:45,308 - INFO - 222     successsssssssss
+2025-07-25 16:25:45,429 - INFO - 222     successsssssssss
+2025-07-25 16:25:45,549 - INFO - 222     successsssssssss
+2025-07-25 16:25:45,669 - INFO - 222     successsssssssss
+2025-07-25 16:25:45,788 - INFO - 222     successsssssssss
+2025-07-25 16:25:45,909 - INFO - 222     successsssssssss
+2025-07-25 16:25:46,029 - INFO - 222     successsssssssss
+2025-07-25 16:25:46,149 - INFO - 222     successsssssssss
+2025-07-25 16:25:46,269 - INFO - 222     successsssssssss
+2025-07-25 16:25:46,389 - INFO - 222     successsssssssss
+2025-07-25 16:25:46,509 - INFO - 222     successsssssssss
+2025-07-25 16:25:46,629 - INFO - 222     successsssssssss
+2025-07-25 16:25:46,749 - INFO - 222     successsssssssss
+2025-07-25 16:25:46,869 - INFO - 222     successsssssssss
+2025-07-25 16:25:46,989 - INFO - 222     successsssssssss
+2025-07-25 16:25:47,109 - INFO - 222     successsssssssss
+2025-07-25 16:25:47,229 - INFO - 222     successsssssssss
+2025-07-25 16:25:47,349 - INFO - 222     successsssssssss
+2025-07-25 16:25:47,469 - INFO - 222     successsssssssss
+2025-07-25 16:25:47,591 - INFO - 222     successsssssssss
+2025-07-25 16:25:47,709 - INFO - 222     successsssssssss
+2025-07-25 16:25:47,829 - INFO - 222     successsssssssss
+2025-07-25 16:25:47,952 - INFO - 222     successsssssssss
+2025-07-25 16:25:48,069 - INFO - 222     successsssssssss
+2025-07-25 16:25:48,189 - INFO - 222     successsssssssss
+2025-07-25 16:25:48,309 - INFO - 222     successsssssssss
+2025-07-25 16:25:48,429 - INFO - 222     successsssssssss
+2025-07-25 16:25:48,549 - INFO - 222     successsssssssss
+2025-07-25 16:25:48,669 - INFO - 222     successsssssssss
+2025-07-25 16:25:48,789 - INFO - 222     successsssssssss
+2025-07-25 16:25:48,909 - INFO - 222     successsssssssss
+2025-07-25 16:25:49,029 - INFO - 222     successsssssssss
+2025-07-25 16:25:49,149 - INFO - 222     successsssssssss
+2025-07-25 16:25:49,269 - INFO - 222     successsssssssss
+2025-07-25 16:25:49,390 - INFO - 222     successsssssssss
+2025-07-25 16:25:49,509 - INFO - 222     successsssssssss
+2025-07-25 16:25:49,629 - INFO - 222     successsssssssss
+2025-07-25 16:25:49,749 - INFO - 222     successsssssssss
+2025-07-25 16:25:49,869 - INFO - 222     successsssssssss
+2025-07-25 16:25:49,989 - INFO - 222     successsssssssss
+2025-07-25 16:25:50,047 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-25 16:25:50,050 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-25 16:25:50,052 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-25 16:26:35,499 - INFO - 程序被用户中断
+2025-07-25 16:26:35,499 - INFO - 正在清理资源...

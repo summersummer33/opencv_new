@@ -1,0 +1,111 @@
+2025-07-29 22:41:53,160 - INFO - 保存图片: code_image_20250729_224153.jpg
+2025-07-29 22:41:53,160 - INFO - 222     successsssssssss
+2025-07-29 22:41:54,559 - INFO - 222     successsssssssss
+2025-07-29 22:41:54,654 - INFO - 222     successsssssssss
+2025-07-29 22:41:54,749 - INFO - 222     successsssssssss
+2025-07-29 22:41:54,829 - INFO - 213+312
+2025-07-29 22:41:54,830 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-29 22:41:54,832 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-29 22:41:54,834 - INFO - b'*\x02\x01\x03\x03\x01\x02'
+2025-07-29 22:42:01,647 - INFO - start checkkkkkkkkkkkkkkkkkkk
+2025-07-29 22:42:02,112 - INFO - next colorrrrrrrrrrrrrrrrrrrr
+2025-07-29 22:42:33,924 - INFO - cccccccccccc
+2025-07-29 22:42:38,463 - INFO - cccccccccccc
+2025-07-29 22:42:38,681 - INFO - xitiao11 okokokokokokokokok
+2025-07-29 22:42:38,681 - INFO - xxxxxxxx
+2025-07-29 22:42:39,220 - INFO - xxxxxxxx
+2025-07-29 22:42:39,373 - INFO - xxxxxxxx
+2025-07-29 22:42:39,496 - INFO - xxxxxxxx
+2025-07-29 22:42:39,625 - INFO - xxxxxxxx
+2025-07-29 22:42:39,721 - INFO - xxxxxxxx
+2025-07-29 22:42:43,121 - INFO - cccccccccccc
+2025-07-29 22:42:43,302 - INFO - xitiao11 okokokokokokokokok
+2025-07-29 22:42:43,303 - INFO - xxxxxxxx
+2025-07-29 22:42:43,741 - INFO - xxxxxxxx
+2025-07-29 22:42:43,944 - INFO - xxxxxxxx
+2025-07-29 22:42:44,060 - INFO - xxxxxxxx
+2025-07-29 22:42:44,180 - INFO - xxxxxxxx
+2025-07-29 22:42:47,587 - INFO - cccccccccccc
+2025-07-29 22:42:47,774 - INFO - xitiao11 okokokokokokokokok
+2025-07-29 22:42:47,775 - INFO - xxxxxxxx
+2025-07-29 22:42:48,061 - INFO - xxxxxxxx
+2025-07-29 22:42:48,345 - INFO - xxxxxxxx
+2025-07-29 22:42:48,490 - INFO - xxxxxxxx
+2025-07-29 22:42:48,596 - INFO - xxxxxxxx
+2025-07-29 22:42:48,724 - INFO - xxxxxxxx
+2025-07-29 22:42:48,838 - INFO - xxxxxxxx
+2025-07-29 22:42:48,969 - INFO - xxxxxxxx
+2025-07-29 22:42:49,076 - INFO - xxxxxxxx
+2025-07-29 22:42:49,212 - INFO - xxxxxxxx
+2025-07-29 22:42:49,334 - INFO - xxxxxxxx
+2025-07-29 22:42:49,467 - INFO - xxxxxxxx
+2025-07-29 22:43:03,567 - INFO - cccccccccccc
+2025-07-29 22:43:09,093 - INFO - cccccccccccc
+2025-07-29 22:43:09,440 - INFO - xitiao11 okokokokokokokokok
+2025-07-29 22:43:09,440 - INFO - xxxxxxxx
+2025-07-29 22:43:09,605 - INFO - xxxxxxxx
+2025-07-29 22:43:09,948 - INFO - xxxxxxxx
+2025-07-29 22:43:10,066 - INFO - xxxxxxxx
+2025-07-29 22:43:10,206 - INFO - xxxxxxxx
+2025-07-29 22:43:10,377 - INFO - xxxxxxxx
+2025-07-29 22:43:10,502 - INFO - xxxxxxxx
+2025-07-29 22:43:13,889 - INFO - cccccccccccc
+2025-07-29 22:43:14,220 - INFO - xitiao11 okokokokokokokokok
+2025-07-29 22:43:14,220 - INFO - xxxxxxxx
+2025-07-29 22:43:14,419 - INFO - xxxxxxxx
+2025-07-29 22:43:14,786 - INFO - xxxxxxxx
+2025-07-29 22:43:14,935 - INFO - xxxxxxxx
+2025-07-29 22:43:15,062 - INFO - xxxxxxxx
+2025-07-29 22:43:15,182 - INFO - xxxxxxxx
+2025-07-29 22:43:15,293 - INFO - xxxxxxxx
+2025-07-29 22:43:15,402 - INFO - xxxxxxxx
+2025-07-29 22:43:18,797 - INFO - cccccccccccc
+2025-07-29 22:43:19,026 - INFO - xitiao11 okokokokokokokokok
+2025-07-29 22:43:19,026 - INFO - xxxxxxxx
+2025-07-29 22:43:19,255 - INFO - xxxxxxxx
+2025-07-29 22:43:19,415 - INFO - xxxxxxxx
+2025-07-29 22:43:19,679 - INFO - xxxxxxxx
+2025-07-29 22:43:19,825 - INFO - xxxxxxxx
+2025-07-29 22:43:19,961 - INFO - xxxxxxxx
+2025-07-29 22:43:20,082 - INFO - xxxxxxxx
+2025-07-29 22:43:20,206 - INFO - xxxxxxxx
+2025-07-29 22:43:20,329 - INFO - xxxxxxxx
+2025-07-29 22:43:20,425 - INFO - xxxxxxxx
+2025-07-29 22:43:20,535 - INFO - xxxxxxxx
+2025-07-29 22:43:20,666 - INFO - xxxxxxxx
+2025-07-29 22:43:20,789 - INFO - xxxxxxxx
+2025-07-29 22:43:30,969 - INFO - start checkkkkkkkkkkkkkkkkkkk
+2025-07-29 22:43:31,371 - INFO - next colorrrrrrrrrrrrrrrrrrrr
+2025-07-29 22:43:50,171 - INFO - cccccccccccc
+2025-07-29 22:43:55,096 - INFO - cccccccccccc
+2025-07-29 22:43:55,424 - INFO - xitiao11 okokokokokokokokok
+2025-07-29 22:43:55,425 - INFO - xxxxxxxx
+2025-07-29 22:43:55,699 - INFO - xxxxxxxx
+2025-07-29 22:43:55,875 - INFO - xxxxxxxx
+2025-07-29 22:43:56,035 - INFO - xxxxxxxx
+2025-07-29 22:43:56,166 - INFO - xxxxxxxx
+2025-07-29 22:43:56,279 - INFO - xxxxxxxx
+2025-07-29 22:43:56,396 - INFO - xxxxxxxx
+2025-07-29 22:43:56,532 - INFO - xxxxxxxx
+2025-07-29 22:43:56,641 - INFO - xxxxxxxx
+2025-07-29 22:43:56,750 - INFO - xxxxxxxx
+2025-07-29 22:43:56,868 - INFO - xxxxxxxx
+2025-07-29 22:43:56,995 - INFO - xxxxxxxx
+2025-07-29 22:44:00,406 - INFO - cccccccccccc
+2025-07-29 22:44:00,733 - INFO - xitiao11 okokokokokokokokok
+2025-07-29 22:44:00,734 - INFO - xxxxxxxx
+2025-07-29 22:44:00,900 - INFO - xxxxxxxx
+2025-07-29 22:44:01,290 - INFO - xxxxxxxx
+2025-07-29 22:44:01,423 - INFO - xxxxxxxx
+2025-07-29 22:44:01,543 - INFO - xxxxxxxx
+2025-07-29 22:44:01,666 - INFO - xxxxxxxx
+2025-07-29 22:44:01,783 - INFO - xxxxxxxx
+2025-07-29 22:44:01,898 - INFO - xxxxxxxx
+2025-07-29 22:44:05,307 - INFO - cccccccccccc
+2025-07-29 22:44:05,676 - INFO - xitiao11 okokokokokokokokok
+2025-07-29 22:44:05,677 - INFO - xxxxxxxx
+2025-07-29 22:44:05,980 - INFO - xxxxxxxx
+2025-07-29 22:44:06,137 - INFO - xxxxxxxx
+2025-07-29 22:44:20,213 - INFO - cccccccccccc
+2025-07-29 22:46:40,204 - INFO - 程序被用户中断
+2025-07-29 22:46:40,206 - INFO - 正在清理资源...
