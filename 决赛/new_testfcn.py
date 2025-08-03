@@ -4,10 +4,11 @@ import math
 import time
 import serial 
 # import testdef
-import testdef_pro as testdef
+import new_testdef_pro as testdef
 import os
 import logging
-
+import queue
+import threading
 
 class FunctionHandler:
     def __init__(self):
@@ -17,6 +18,10 @@ class FunctionHandler:
         self.ser = testdef.serialInit()
         self.frame_width = 1280
         self.frame_height = 720
+        # 线程通信和管理
+        self.command_queue = queue.Queue()
+        self._listener_thread = None
+        self._is_running = False
         # 全局状态变量
         # 二维码信息
         self.get_order = [2,3,1]
@@ -34,9 +39,85 @@ class FunctionHandler:
         # 不记得是啥
         self.get_order_blank=[]
 
-    # # 默认初始值，后续改掉
-    # get_order=[2,3,1]
-    # put_order=[1,3,2]
+
+    # --- 新增：启动和管理监听线程的函数 ---
+    def start_serial_listener(self):
+        if self._listener_thread is None:
+            self._is_running = True
+            self._listener_thread = threading.Thread(target=self._serial_listener_worker, daemon=True)
+            self._listener_thread.start()
+            print("串口监听线程已启动。")
+
+    def _serial_listener_worker(self):
+        """这个函数在后台线程中运行，专门负责监听串口。"""
+        while self._is_running:
+            try:
+                # 设置超时，避免 readline() 永久阻塞
+                self.ser.timeout = 1.0 
+                recv_mess = self.ser.readline().strip()
+                if recv_mess:
+                    print(f"监听线程收到: {recv_mess}")
+                    self.command_queue.put(recv_mess) # 将收到的任何消息放入队列
+            except Exception as e:
+                print(f"串口监听线程发生错误: {e}")
+                time.sleep(1) # 出错时等待一下
+
+    # 在 testfcn.py 的 FunctionHandler 类中添加这个方法
+
+    def wait_for_specific_message(self, expected_message, timeout=15):
+        """
+        从命令队列中等待一个特定的消息。
+        这是一个阻塞函数，但它会以安全的方式从队列中取数据。
+        
+        :param expected_message: 期望收到的消息 (bytes)
+        :param timeout: 最长等待时间 (秒)
+        :return: 如果收到消息则返回 True，超时则返回 False
+        """
+        print(f"正在等待特定消息: {expected_message}，最长等待 {timeout} 秒...")
+        try:
+            start_time = time.time()
+            while time.time() - start_time < timeout:
+                # 计算剩余等待时间
+                remaining_time = timeout - (time.time() - start_time)
+                if remaining_time <= 0:
+                    raise queue.Empty # 手动触发超时，避免负数等待时间
+
+                # 从队列中阻塞式地获取一条消息
+                message = self.command_queue.get(timeout=remaining_time)
+                print(f"  ...从队列中收到消息: {message}")
+
+                if message == expected_message:
+                    print(f"成功收到期望的消息: {expected_message}!")
+                    return True
+                elif message == b'stop':
+                    # 如果在等待特定消息时收到了中止指令，需要把它“放回去”
+                    # 这样外层的 run_and_wait_for_task 才能收到它
+                    print("  ...在等待期间收到stop指令，将其放回队列并继续等待。")
+                    self.command_queue.put(message)
+                    time.sleep(0.01) # 避免活锁
+                else:
+                    # 如果不是我们想要的消息，也不是stop，打印一个警告并忽略
+                    print(f"  ...收到的消息 '{message}' 不是期望的，已忽略。")
+            
+            # 如果循环因时间耗尽而结束
+            raise queue.Empty
+
+        except queue.Empty:
+            print(f"等待 '{expected_message}' 超时！")
+            return False
+
+    def cleanup(self):
+        """在程序结束时调用，用于安全地关闭资源。"""
+        print("正在停止监听线程...")
+        self._is_running = False
+        if self._listener_thread and self._listener_thread.is_alive():
+            self._listener_thread.join(timeout=1.5)
+        
+        print("正在关闭串口...")
+        if self.ser and self.ser.is_open:
+            self.ser.close()
+        
+        print("FunctionHandler 清理完成。")
 
     def init_camera_up(self):
         """初始化上部摄像头"""
@@ -205,7 +286,7 @@ class FunctionHandler:
         cv2.destroyAllWindows()
 
     # 细调函数：颜色定位和灰度定位
-    def xi_positioning(self, circle_order, timeout_xi=1.5, run_time=3):
+    def xi_positioning(self, circle_order, timeout_xi=2, run_time=3):
         """细调圆环位置（颜色定位和灰度定位）"""
         if not self.check_camera(self.cap,"上部摄像头"):
             self.init_camera_up()
@@ -331,7 +412,7 @@ class FunctionHandler:
         ret=self.cap.grab()
         self.recv=b'st'  #完成功能后进入空循环
 
-    def adjust_line_gray_yellow(self,timeout_line=1.5):
+    def adjust_line_gray_yellow(self,timeout_line=3):
         """调整直线——灰黄交界"""
         # while not self.cap.isOpened():
         #     print("Not open colorcap")
@@ -524,9 +605,6 @@ class FunctionHandler:
 
 
     def plate_adjust_then_put_pre_color(self, plate_order, adjust_finely=0):
-        """
-        中间的精调是动机械臂(adjust_finely=1)
-        """
         i=0
         if not self.check_camera(self.cap,"上部摄像头"):
             self.init_camera_up()
@@ -672,8 +750,7 @@ class FunctionHandler:
 
     def plate_adjust_then_put_pre_color_pro(self, plate_order, adjust_finely=0):
         """
-        在位置锁定阶段"同时"检测灰度圆环和颜色圆环
-        放第一个颜色时直接调整机械臂位置 
+        在位置锁定阶段同时检测灰度圆环和颜色圆环 
         """
         # while not self.cap.isOpened():
         #     print("Not open colorcap")
@@ -805,132 +882,9 @@ class FunctionHandler:
         cv2.destroyAllWindows()
 
 
-    def plate_adjust_then_put_pre_color_pro_move_car(self, plate_order, adjust_finely=0):
-        """
-        在位置锁定阶段"同时"检测灰度圆环和颜色圆环
-        放第一个颜色时直接调整机械臂位置 
-        """
-        # while not self.cap.isOpened():
-        #     print("Not open colorcap")
-        if not self.check_camera(self.cap,"上部摄像头"):
-            self.init_camera_up()
-        print("plate_order:",plate_order)
-        stop_flag=0
-        stop_flag_1=0
-        x_last=0
-        y_last=0
-        # 1. 引入新变量来存储静止时的精确偏差
-        is_locked = False       # 标志位，表示我们是否已经锁定了静止的圆环
-        locked_detx = 0         # 存储静止时测得的精确 detx
-        locked_dety = 0         # 存储静止时测得的精确 dety
-        is_stopped = False
-        flag_color = 0
-        i=0
-        for i in range(3):
-        # while i<3:
-            color_=0
-            if (plate_order[i]==1):
-                color_=2
-            elif(plate_order[i]==2):
-                color_=3
-            elif(plate_order[i]==3):
-                color_=1
-            # if (plate_order[i]==1):
-            #     color_=3
-            # elif(plate_order[i]==2):
-            #     color_=1
-            # elif(plate_order[i]==3):
-            #     color_=2
-
-            if i == 0:
-                while not is_locked:
-                    # 持续检测转盘是否停止 和 圆环是否存在
-                    is_stopped, direction = testdef.detectPlate_gray(self.cap)
-                    x_, y_, img_, is_found, detx, dety, color = testdef.findBlockCenter_gray(self.cap)
-                    x_,y_,img_,flag_color,detx,dety = testdef.findBlockCenter(self.cap,color_)
-                    if is_found and is_stopped:
-                        print("检测到静止圆环！开始进行精确采样...")
-                        # 进行多次采样以获得精确偏差
-                        detx_samples = []
-                        dety_samples = []
-                        for _ in range(5):
-                            _, _, _, f, dx, dy, _ = testdef.findBlockCenter_gray(self.cap)
-                            if f:
-                                detx_samples.append(dx)
-                                dety_samples.append(dy)
-                            # time.sleep(0.05)
-                        if detx_samples:
-                            locked_detx = round(np.mean(detx_samples))
-                            locked_dety = round(np.mean(dety_samples))
-                            is_locked = True # 成功锁定！退出这个循环
-                            # print(f"成功锁定！静止偏差为: detx={locked_detx:.2f},d dety={locked_dety:.2f}")
-                        else:
-                            print("采样失败，将重试...")
-                # 3. 锁定成功后，进入下一个阶段：等待圆环离开
-                # print("已锁定位置，现在等待圆环离开...")
-                has_departed = False
-                while not has_departed:
-                    is_stopped, direction = testdef.detectPlate_gray(self.cap) # 持续检测停止状态
-                    # x_, y_, img_, is_found, detx, dety, color = testdef.findBlockCenter_gray(self.cap)
-                    if not is_stopped:
-                        has_departed = True
-                        print("检测到转盘开始移动，圆环已离开！")
-                print("开始动底盘")
-                if adjust_finely == 1:
-                    while not stop_flag_1:
-                        flag2, direction = testdef.detectPlate_gray(self.cap)
-                        x_,y_,img_,flag1,detx,dety,color = testdef.findBlockCenter_gray(self.cap)
-                        if  (flag2 == 1 and flag1 == 1):
-                        # if flag2==1: 
-                            time_start=time.time()
-                            while (not stop_flag_1 and (time.time()-time_start)<2.7):
-                                x_,y_,img_,flag9,detx9,dety9,color = testdef.findBlockCenter_gray(self.cap)
-                                # print("qqqqqqqq:",abs(detx9),abs(dety9))
-                                # if abs(detx9)<12 and abs(dety9)<12 and detx9!=0 and dety9!=0:
-                                if abs(detx9)<10 and abs(dety9)<10 and flag9==1:
-                                    stop_flag_1=1
-                                    print("stop_flag_1:",stop_flag_1)
-                                else:
-                                    testdef.sendMessage5(self.ser,0,detx9,dety9)
-                                    # time.sleep(0.1)
-                            if stop_flag_1==1:
-                                testdef.sendMessage(self.ser,68)
-                                # time.sleep(3.5)#!避免在该圆环下定位后立即判断该色到位，加一个延时，放掉这个圆环，对
-                            else:
-                                print("chaoshilechaoshilechaoshilechaoshile")
-                                time.sleep(2)
-                else:
-                    testdef.sendMessage2(self.ser,locked_detx,locked_dety)
-                    time.sleep(0.05)
-                    if flag_color:
-                        testdef.sendMessage(self.ser,119)
-                        stop_flag=0
-                        stop_flag_1=0
-                        time.sleep(4)
-                        continue
-
-            while not stop_flag:
-                flag2 = testdef.detectPlate(self.cap,color_)
-                x_,y_,img_,flag1,detx,dety = testdef.findBlockCenter(self.cap,color_)
-                if  (flag2 == 1 and flag1 == 1):
-                    x_last=x_
-                    y_last=y_
-                    while not stop_flag:
-                        stop_flag_pre = testdef.detectPlate(self.cap,color_)
-                        if not stop_flag_pre:
-                            stop_flag = 1
-                        elif stop_flag_pre:
-                            print("1")
-            testdef.sendMessage(self.ser,119)
-            stop_flag=0
-            stop_flag_1=0
-            time.sleep(4)  #我看到上个颜色圆环离开-通知机械臂回身取物料-此延时用于防止在这个过程中看到颜色动与不动造成误判断
-        cv2.destroyAllWindows()
-
-
     def plate_adjust_then_put_nocolor_ring(self, adjust_finely=0):
         """
-        在位置锁定阶段检测灰度圆环，中间的精调部分是动底盘(adjust_finely=1)
+        在位置锁定阶段检测灰度圆环 
         """
         if not self.check_camera(self.cap,"上部摄像头"):
             self.init_camera_up()
@@ -994,8 +948,8 @@ class FunctionHandler:
                                     print("stop_flag_1:",stop_flag_1)
                                 else:
                                     testdef.sendMessage5(self.ser,0,detx,dety)    
-                                    time.sleep(0.05)
-                                    # time.sleep(0.01)
+                                    # time.sleep(0.05)
+                                    time.sleep(0.01)
                             if stop_flag_1==1:
                                 testdef.sendMessage(self.ser,68)
                                 # time.sleep(3.5)#!避免在该圆环下定位后立即判断该色到位，加一个延时，放掉这个圆环，对
@@ -1197,20 +1151,18 @@ class FunctionHandler:
         cv2.destroyAllWindows()
 
 
-    def get_from_plate_check_eachtime(self, plate_order, run_time=3, max_try=0):
+    def get_from_plate_check_eachtime(self, plate_order, run_time=3):
         """夹完在物料盘处二次检查 次次检查 (使用嵌套循环结构优化)"""
         if not self.check_camera(self.cap,"上部摄像头"):
             self.init_camera_up()
         i = 0
         for i in range(run_time):
-            try_count = 0  # 初始化当前物料的尝试次数
             strat_time_get = time.time()
             print(f"\n--- [第 {i+1}/{run_time} 轮] 开始处理物料 {plate_order[i]}，计时开始 ---")
             while True:
                 if (time.time() - strat_time_get) > 30:
                     print(f"警告：处理物料 {plate_order[i]} 总时间超过60秒，放弃并跳到下一个。")
                     break  # 跳出内层 while True 循环，外层 for 循环会继续下一个 i
-
 
                 ret=self.cap.grab()
                 stop_flag = 0
@@ -1247,19 +1199,14 @@ class FunctionHandler:
                         print("flag_chexk:",flag_check)
                         break # 收到check信号就跳出检查等待
 
-                try_count += 1 # 无论成功失败，都算一次尝试
-
                 if flag_check:  
                     print("next colorrrrrrrrrrrrrrrrrrrr")
+                    print(time.time()-time_start_check)
                     break # 成功了，跳出内层 while True，外层 for 循环会自动进入下一个 i
                 else:  #没夹到仍等待第一个 (flag_check为False)
                     print("重试")
-                    if max_try == 0 or try_count < max_try: # 如果max_try为0或当前尝试次数小于max_try，则重试
-                        testdef.sendMessage(self.ser,3)
-                    else:
-                        print("重试次数超过最大值，放弃")
-                        break
-
+                    testdef.sendMessage(self.ser,3)
+                    print(time.time()-time_start_check)
                 
         ret=self.cap.grab()
         ret=self.cap.grab()

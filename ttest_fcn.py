@@ -51,19 +51,20 @@ def main():
     handler = testfcn.FunctionHandler()
     handler.init_camera_code()  # 初始化摄像头
     handler.init_camera_up()  # 初始化摄像头
-    recv=''
+    # recv=''
+    recv_mess = b'OO'
 
     try:
         while True:
-            # 接收串口消息
-            recv_mess = testdef.receiveMessage(handler.ser)
+            # # 接收串口消息
+            # recv_mess = testdef.receiveMessage(handler.ser)
             if recv_mess != None:
                 print("recv_mess:",recv_mess)
             if recv_mess != None:
                 #### 根据接收到的指令更新recv
                 if recv_mess in [b'AA', b'BB1', b'BB2', b'CC12', b'CC3', b'CC4', b'CC5', b'EE', 
                                 b'FF', b'GG', b'HH', b'II', b'JJ', b'KK12', b'KK3', b'LL1', b'LL2', b'MM', b'NN1', b'NN2',
-                                b'OO', b'PP', b'QQ1', b'QQ2',
+                                b'OO', b'PP', b'QQ',
                                 b'st', b'end',
                                 b'DD', b'II2']:
                     recv=recv_mess
@@ -112,9 +113,7 @@ def main():
             elif recv == b'CC4':
                 run_time = time.time()-start_time
                 print("run_time:",run_time)
-                if run_time < 155:
-                    handler.cu_positioning(limit_circle=limit_cu_circle, limit_line=limit_cu_line)
-                elif run_time > 155 and run_time < 160:
+                if run_time < 160:
                     handler.cu_positioning(limit_circle=6, limit_line=1)
                 elif run_time > 170:
                     handler.cu_positioning(limit_circle=200, limit_line=10)
@@ -134,6 +133,11 @@ def main():
                 handler.adjust_line_gray_yellow()
                 recv = b'st'
 
+
+            ############测试:粗调时先直线后xy位置
+            elif recv == b'QQ':
+                handler.cu_positioning_test()
+                recv = b'st'
 
 
 
@@ -162,11 +166,11 @@ def main():
 
         ############测试:识别转盘 夹取物料（回到物料盘 次次检查
             elif recv==b'NN1':
-                handler.get_from_plate_check_eachtime(handler.get_order, run_time=3, max_try=2)
+                handler.get_from_plate_check_eachtime(handler.get_order, run_time=3)
                 recv = b'st'
 
             elif recv==b'NN2':
-                handler.get_from_plate_check_eachtime(handler.put_order, run_time=3, max_try=2)
+                handler.get_from_plate_check_eachtime(handler.put_order, run_time=3)
                 recv = b'st'
 
         ####在一条直线三个圆环处夹取物料 用于判定位置和颜色对应关系
@@ -193,22 +197,9 @@ def main():
             #############################################################################################
             ####################################模拟赛使用################################################
             #############################################################################################
-        ####识别转盘 放置物料（黑色圆环）
+
             elif recv==b'OO':
                 handler.plate_adjust_then_put_nocolor_ring(adjust_finely=1)
-                recv = b'st'
-
-            elif recv == b'PP':
-                handler.plate_adjust_then_put_nocolor_ring_for_adjust(adjust_finely=1)
-                recv = b'st'
-
-        ####识别转盘 放置物料 前一个颜色放置 调整底盘
-            elif recv == b'QQ1':
-                handler.plate_adjust_then_put_pre_color_pro_move_car(handler.get_order, adjust_finely=1)
-                recv = b'st'
-
-            elif recv == b'QQ2':
-                handler.plate_adjust_then_put_pre_color_pro_move_car(handler.put_order, adjust_finely=1)
                 recv = b'st'
 
             #############################################################################################

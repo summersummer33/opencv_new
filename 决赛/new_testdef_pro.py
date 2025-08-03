@@ -40,7 +40,7 @@ cutiao_center_circle=0.0097
 #40  -7
 #30  7 #jiangxialai qian
 #粗调时高度偏差值(findcontours)
-correct_x=51
+correct_x=40
 correct_y=14
 
 #new paw
@@ -52,7 +52,7 @@ correct_y=14
 #37  6
 #45  7
 #细调时高度的偏差值(houghcircles)
-correct_x_hough=47
+correct_x_hough=36
 correct_y_hough=14
 #存储默认值
 correct_x_hough_default=correct_x_hough
@@ -344,11 +344,7 @@ def together_line_circle_det(cap, limit_position_circle, limit_position_line):  
 
     #####################line图像处理#################################s
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)   #ת Ҷ ͼ
-    # cv2.imshow("gray",gray)
     equalized = cv2.equalizeHist(gray)
-    # clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    # enhanced = clahe.apply(gray)
-    # cv2.imshow("enhanced",enhanced)
     # cv2.imshow("junheng",equalized)
     # ret, thresh = cv2.threshold(equalized, 120, 255, cv2.THRESH_BINARY)
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
@@ -363,10 +359,7 @@ def together_line_circle_det(cap, limit_position_circle, limit_position_line):  
     blurred_c = cv2.GaussianBlur(equalized, (9, 9), 2)
     # edges = cv2.Canny(blurred, 50, 150)
     edges1 = cv2.Canny(blurred_c, 50, 150)
-    # cv2.imshow("blurred",blurred)
-    # cv2.imshow("blurred_c",blurred_c)
-    # cv2.imshow("edges",edges)
-    # cv2.imshow("edges1",edges1)
+    cv2.imshow("edges1",edges1)
 
     red_min   =  np.array(dim_red_min)
     red_max   =  np.array(dim_red_max)
@@ -383,8 +376,6 @@ def together_line_circle_det(cap, limit_position_circle, limit_position_line):  
     mask3 = cv2.inRange(hsv,  blue_min,  blue_max)
     mask1 = cv2.add(mask12,mask11)
     cv2.imshow("green",mask2)
-    # cv2.imshow("red",mask1)
-    # cv2.imshow("blue",mask3)
 
     ####不看颜色框里线，避免被物料直边干扰
     #red
@@ -453,7 +444,7 @@ def together_line_circle_det(cap, limit_position_circle, limit_position_line):  
     # total_mask = cv2.bitwise_or(mask1, cv2.bitwise_or(mask2, mask3))
     # cv2.imshow("mask",mask3)
     # edges[total_mask > 0] = [0]
-    cv2.imshow("edges_lines",edges)
+    cv2.imshow("edges",edges)
 
     #################识别直线，不看颜色框里线，避免被物料直边干扰
     lines = cv2.HoughLines(edges,1,np.pi/180,threshold =150)
@@ -2569,6 +2560,123 @@ def find_inner_circle_on_cylinder(cap, color_number, hough=1):
     cv2.imshow("frame",output_frame)
     cv2.waitKey(1)
     return flag, detx, dety
+
+
+def enhance_and_find_ring(cap):
+    """
+    从摄像头捕获图像，识别白纸上的黑色细环，并直接显示处理过程和结果。
+    
+    该函数直接操作传入的摄像头对象，并在内部处理图像显示，无返回值。
+    
+    :param cap: cv2.VideoCapture 对象，即打开的摄像头。
+    """
+
+    
+    # 1. 从摄像头捕获一帧图像
+    ret, frame = cap.read()
+    if not ret:
+        print("错误：无法从摄像头读取帧。")
+        return 0, 0, None, 0, 0, 0  # 返回默认值
+
+    # 创建一个副本用于绘制，以保留原始图像的清洁
+    output_frame = frame.copy()
+    h,w =frame.shape[:2]
+
+    # --- 图像处理流程 ---
+
+    # 2. 灰度化
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    enhanced = clahe.apply(gray)
+    blurred = cv2.GaussianBlur(enhanced, (5, 5), 0)
+    # 5. 黑帽操作，突出比周围暗的细小结构 (黑色细环)
+    #    内核尺寸应略大于环的线宽
+    kernel_blackhat = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25))
+    blackhat = cv2.morphologyEx(blurred, cv2.MORPH_BLACKHAT, kernel_blackhat)
+    edges = cv2.Canny(blackhat, 50, 150)
+    kernel_close = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
+    closed_edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel_close)
+    contours, hierarchy = cv2.findContours(closed_edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    found_rings = []
+    detx = 0
+    dety = 0
+    is_found = 0
+    x_center = 0
+    y_center = 0
+
+    if hierarchy is not None:
+        # 遍历所有轮廓，寻找有子轮廓的父轮廓（即环）
+        for i, contour in enumerate(contours):
+            # hierarchy 格式: [Next, Previous, First_Child, Parent]
+            h = hierarchy[0][i]
+            # 条件：这是一个最外层的轮廓(没有父级) 并且 它有一个子轮廓
+            if h[3] == -1 and h[2] != -1:
+                child_contour = contours[h[2]]
+                outer_area = cv2.contourArea(contour)
+                inner_area = cv2.contourArea(child_contour)
+                
+                # 面积筛选：排除太小或太大的噪声
+                if outer_area < 500 or inner_area < 100:
+                    continue
+
+                # 圆度筛选：确保形状接近圆形 (可选但强烈推荐)
+                peri_outer = cv2.arcLength(contour, True)
+                if peri_outer == 0: continue
+                circularity_outer = (4 * np.pi * outer_area) / (peri_outer * peri_outer)
+                
+                if circularity_outer > 0.7: # 阈值可调，越接近1越圆
+                    (x, y), radius = cv2.minEnclosingCircle(contour)
+                    found_rings.append({
+                        'center': (int(x), int(y)),
+                        'radius': int(radius),
+                        'outer_contour': contour,
+                        'area': outer_area
+                    })
+
+    # --- 绘制结果 ---
+    if found_rings:
+        # 如果找到多个符合条件的环，选择面积最大的那个
+        best_ring = max(found_rings, key=lambda r: r['area'])
+        print("bestring:", best_ring)
+        
+        center = best_ring['center']
+        print("center:", center)
+        radius = best_ring['radius']
+        cv2.drawContours(output_frame, [best_ring['outer_contour']], -1, (0, 255, 0), 2)
+        cv2.circle(output_frame, center, 5, (0, 0, 255), -1)
+        cv2.circle(output_frame, center, radius, (0, 0, 255), 2)
+        
+        info_text = f"Center: {center}, R: {radius}"
+        cv2.putText(output_frame, info_text, (10, 30), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 255), 2)
+        # detx = int(round(center[0] - w/2 - correct_x))
+        # dety = int(round(h/2 - center[1] - correct_y))
+        # 使用 np.round() 来进行四舍五入
+        # 确保center是标量值
+        center_x: int
+        center_y: int
+        center_x, center_y = center
+        print("center_x, center_y:", center_x, center_y)
+        # 使用 astype 确保是标量值
+        center_x = center_x.astype(int) if hasattr(center_x, 'astype') else int(center_x)
+        center_y = center_y.astype(int) if hasattr(center_y, 'astype') else int(center_y)
+        # detx = int(round(center_x - w/2 - correct_x))
+        # dety = int(round(h/2 - center_y - correct_y))
+        detx = int(center_x - w/2 - correct_x)
+        dety = int(h/2 - center_y - correct_y)
+        is_found = 1
+        x_center = center_x
+        y_center = center_y
+
+    # --- 显示所有图像 ---
+    # cv2.imshow("Original", frame)
+    cv2.imshow("Detected Ring", output_frame)
+    # cv2.imshow("Grayscale", gray)
+    # cv2.imshow("Blackhat (Ring Highlighted)", blackhat)
+    # cv2.imshow("Closed Edges (For Contours)", closed_edges)
+    cv2.waitKey(1)
+    return x_center/w, y_center/h, output_frame, is_found, detx, dety
 
 
 def enhance_and_find_ring_new(cap):

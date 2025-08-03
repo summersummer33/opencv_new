@@ -44,13 +44,13 @@ cap.set(cv2.CAP_PROP_BUFFERSIZE, 4)
 # vmin=50
 # vmax=255
 
-# #绿色（能看浅色圆环
-# hmin=32
-# hmax=78
-# smin=48
-# smax=234
-# vmin=54
-# vmax=255
+#绿色（能看浅色圆环
+hmin=32
+hmax=78
+smin=48
+smax=234
+vmin=54
+vmax=255
 
 # #绿色（避免看到黄色
 # hmin=40
@@ -60,13 +60,13 @@ cap.set(cv2.CAP_PROP_BUFFERSIZE, 4)
 # vmin=54
 # vmax=255
 
-#蓝色
-hmin=82
-hmax=120
-smin=70
-smax=255
-vmin=0
-vmax=255
+# #蓝色
+# hmin=82
+# hmax=120
+# smin=70
+# smax=255
+# vmin=0
+# vmax=255
 
 cv2.namedWindow("TrackBars")
 cv2.resizeWindow("TrackBars",640,240)

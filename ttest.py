@@ -49,6 +49,8 @@ while True:
     # success, img = cap.read()
     # # print("time:",time.time()-Time1)
     # cv2.imshow("Original",img)
+    # success,img = cap_code.read()
+    # cv2.imshow("Original",img)
 
 
     # src1 = img.copy()
@@ -58,7 +60,7 @@ while True:
     # data, code_flag = testdef.code(cap_code)
     # detx1,dety1,move_flag,stop_flag=testdef.findCountours(cap)
     # detx,dety,move_flag_color_2=testdef.circlePut1(cap)
-    # detx,dety,move_flag_color_2=testdef.circlePut_det(cap)
+    detx,dety,move_flag_color_2=testdef.circlePut_det(cap)
     # detx,dety,move_flag_color_2=testdef.circlePut_hzw(cap)
     # detx,dety,move_flag_color_2=testdef.circlePut_ds(cap)
     # theta,line_flag,detx,dety,move_flag=testdef.together_line_circle1(cap)
@@ -75,7 +77,7 @@ while True:
     # x_center,y_center,flag_color_1,detx_p,dety_p=testdef.findGoodsCenter(cap,1)
 
     # finaltheta,line_flag=testdef.detectLine(cap)
-    theta,line_flag=testdef.detectLine_gray(cap)
+    # theta,line_flag=testdef.detectLine_gray(cap)
     # theta,line_flag,detx,dety,move_flag=testdef.together_line_circle1(cap)
     # cap.release()
     # print("time:",time.time()-Time1)
@@ -86,7 +88,8 @@ while True:
     # x_,y_,img_,flag1,detx,dety,color_2= testdef.findBlockCenter_acquaint_color(cap)
     # flag2 = testdef.detectPlate(cap,1)
     # testdef.find_inner_circle_on_cylinder(cap,1,hough=0)
-    # testdef.enhance_and_find_ring(cap)
+    # x_,y_,img_,is_found,detx,dety=testdef.enhance_and_find_ring_new(cap)
+    # print(x_,y_,is_found,detx,dety)
     # x_,y_,img_,flag1,detx,dety = testdef.findBlockCenter(cap,2,is_get_from_plate=1)
     # testdef.display_contour_areas(cap,3)
     cv2.waitKey(1)    
