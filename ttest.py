@@ -49,8 +49,8 @@ while True:
     # success, img = cap.read()
     # # print("time:",time.time()-Time1)
     # cv2.imshow("Original",img)
-    # success,img = cap_code.read()
-    # cv2.imshow("Original",img)
+    success,img = cap_code.read()
+    cv2.imshow("Original",img)
 
 
     # src1 = img.copy()
@@ -60,7 +60,7 @@ while True:
     # data, code_flag = testdef.code(cap_code)
     # detx1,dety1,move_flag,stop_flag=testdef.findCountours(cap)
     # detx,dety,move_flag_color_2=testdef.circlePut1(cap)
-    detx,dety,move_flag_color_2=testdef.circlePut_det(cap)
+    # detx,dety,move_flag_color_2=testdef.circlePut_det(cap)
     # detx,dety,move_flag_color_2=testdef.circlePut_hzw(cap)
     # detx,dety,move_flag_color_2=testdef.circlePut_ds(cap)
     # theta,line_flag,detx,dety,move_flag=testdef.together_line_circle1(cap)

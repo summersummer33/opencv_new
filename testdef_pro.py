@@ -52,7 +52,7 @@ correct_y=14
 #37  6
 #45  7
 #细调时高度的偏差值(houghcircles)
-correct_x_hough=47
+correct_x_hough=48
 correct_y_hough=14
 #存储默认值
 correct_x_hough_default=correct_x_hough
@@ -2007,7 +2007,7 @@ def detectLine(cap):   #直线检测
     if abs(finaltheta)<0.5:
     # if abs(finaltheta)<1:
         line_flag=1
-    finaltheta=int(round(finaltheta))
+    finaltheta=int(round(finaltheta*10))
     if (finaltheta==90 ):
         finaltheta=0
     cv2.waitKey(1)

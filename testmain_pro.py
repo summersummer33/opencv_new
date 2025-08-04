@@ -116,7 +116,7 @@ def main():
                     handler.cu_positioning(limit_circle=limit_cu_circle, limit_line=limit_cu_line)
                 elif run_time > 155 and run_time < 160:
                     handler.cu_positioning(limit_circle=6, limit_line=1)
-                elif run_time > 170:
+                elif run_time > 168:
                     handler.cu_positioning(limit_circle=200, limit_line=10)
                 else: 
                     handler.cu_positioning(limit_circle=15, limit_line=3)
@@ -148,7 +148,7 @@ def main():
 
         ####识别转盘 放置物料 当次颜色放置
             elif recv == b'HH':
-                handler.plate_adjust_then_put(handler.get_order)
+                handler.plate_adjust_then_put(handler.get_order,adjust_finely=1)
                 recv = b'st'
 
         ####识别转盘 放置物料 前一个颜色放置
