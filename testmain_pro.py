@@ -63,7 +63,7 @@ def main():
                 #### 根据接收到的指令更新recv
                 if recv_mess in [b'AA', b'BB1', b'BB2', b'CC12', b'CC3', b'CC4', b'CC5', b'EE', 
                                 b'FF', b'GG', b'HH', b'II', b'JJ', b'KK12', b'KK3', b'LL1', b'LL2', b'MM', b'NN1', b'NN2',
-                                b'OO', b'PP', b'QQ1', b'QQ2',
+                                b'OO', b'PP', b'QQ1', b'QQ2', b'RR',
                                 b'st', b'end',
                                 b'DD', b'II2']:
                     recv=recv_mess
@@ -209,6 +209,12 @@ def main():
 
             elif recv == b'QQ2':
                 handler.plate_adjust_then_put_pre_color_pro_move_car(handler.put_order, adjust_finely=1)
+                recv = b'st'
+
+        ####识别转盘 放置物料 前一个颜色放置 精调机械臂 不会多放走
+        ####一定要降下来稳后再发RR！！！
+            elif recv == b'RR':
+                handler.plate_adjust_then_put_pre_color_faster(handler.get_order)
                 recv = b'st'
 
             #############################################################################################

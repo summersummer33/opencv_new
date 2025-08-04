@@ -953,18 +953,18 @@ class FunctionHandler:
         for i in range(3):
         # while i<3:
             color_=0
-            if (plate_order[i]==1):
-                color_=2
-            elif(plate_order[i]==2):
-                color_=3
-            elif(plate_order[i]==3):
-                color_=1
             # if (plate_order[i]==1):
-            #     color_=3
-            # elif(plate_order[i]==2):
-            #     color_=1
-            # elif(plate_order[i]==3):
             #     color_=2
+            # elif(plate_order[i]==2):
+            #     color_=3
+            # elif(plate_order[i]==3):
+            #     color_=1
+            if (plate_order[i]==1):
+                color_=3
+            elif(plate_order[i]==2):
+                color_=1
+            elif(plate_order[i]==3):
+                color_=2
 
             if i == 0:
                 initial_is_stopped, _ = testdef.detectPlate_gray(self.cap)
@@ -984,8 +984,8 @@ class FunctionHandler:
                 else:
                     print("### 情况二：初始转动，执行'直接等待并精调'策略 ###")
                     pass # 明确表示我们在这里是故意跳过的
+                ret = self.cap.grab()
                 print("kaishidongjixiebi kaishidongjixiebi")
-                
                 while not stop_flag_1:
                     flag2, direction = testdef.detectPlate_gray(self.cap)
                     x_,y_,img_,flag1,detx,dety,color = testdef.findBlockCenter_gray(self.cap)
@@ -1025,7 +1025,7 @@ class FunctionHandler:
             testdef.sendMessage(self.ser,119)
             stop_flag=0
             stop_flag_1=0
-            time.sleep(4)  #我看到上个颜色圆环离开-通知机械臂回身取物料-此延时用于防止在这个过程中看到颜色动与不动造成误判断
+            time.sleep(4.4)  #我看到上个颜色圆环离开-通知机械臂回身取物料-此延时用于防止在这个过程中看到颜色动与不动造成误判断
         cv2.destroyAllWindows()
 
 
