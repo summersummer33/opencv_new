@@ -52,8 +52,8 @@ correct_y=14
 #37  6
 #45  7
 #细调时高度的偏差值(houghcircles)
-correct_x_hough=48
-correct_y_hough=14
+correct_x_hough=49
+correct_y_hough=13
 #存储默认值
 correct_x_hough_default=correct_x_hough
 correct_y_hough_default=correct_y_hough

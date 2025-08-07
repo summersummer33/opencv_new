@@ -64,7 +64,7 @@ while True:
     # detx,dety,move_flag_color_2=testdef.circlePut_hzw(cap)
     # detx,dety,move_flag_color_2=testdef.circlePut_ds(cap)
     # theta,line_flag,detx,dety,move_flag=testdef.together_line_circle1(cap)
-    # theta,line_flag,detx,dety,move_flag=testdef.together_line_circle_det(cap,limit_position_circle=4,limit_position_line=0.3)
+    theta,line_flag,detx,dety,move_flag=testdef.together_line_circle_det(cap,limit_position_circle=4,limit_position_line=0.3)
     # a,b,frame,flag_color_1,detx_p,dety_p=findBlockCenter11(cap,2)
     # x_,y_,img_,flag9,detx9,dety9,color = testdef.findBlockCenter_gray(cap)
     # x_,y_,img_,flag9,detx9,dety9= testdef.findBlockCenter(cap,3)
